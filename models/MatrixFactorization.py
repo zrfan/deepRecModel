@@ -68,7 +68,7 @@ class LFM(object):
         for _ in range(self.iter):
             for userId, items in self.user_items.items():
                 i += 1
-                if i % 10000 == 0:
+                if i % 100 == 0:
                     print("i=", i)
                 userRating = self.randSelectNegSample(userId, items)
                 for itemId, rating in userRating.items():
