@@ -64,12 +64,12 @@ class LFM(object):
 
     def SGD(self):
         alpha = self.alpha
-        # i = 0
+        i = 0
         for _ in range(self.iter):
             for userId, items in self.user_items.items():
-                # i += 1
-                # if i > 10:
-                #     break
+                i += 1
+                if i % 10000 == 0:
+                    print("i=", i)
                 userRating = self.randSelectNegSample(userId, items)
                 for itemId, rating in userRating.items():
                     dRate = rating - self.lfmPredict(userId, itemId)
