@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from time import time
+import time
 import math
 
 def mergeTag(df, column="all_tag"):
@@ -30,10 +30,36 @@ def getAllMovieTagInfo(path):
     print("merged genome_movie_tag_info count=\n", genome_tag_info.count(), " genome_taged_movieId_cnt=",
           genome_tag_info["movieId"].drop_duplicates().size, " all genome_tagId_cnt=", genome_tag_info["tagId"].drop_duplicates().size)
     return genome_tag_info
+def cleanStr(x):
+    try:
+        s = str(eval(x))
+    except:
+        print("s=", x)
+        s = x
+    return s
+def getYear(x):
+    arr = x.split("(")
+    if len(arr) == 1:
+        return 0
+    y = 0
+    for t in arr:
+        try:
+            y = int(t[0:4])
+        except:
+            continue
+    return y
 
 def getMovieInfo(path):
     movie_info = pd.read_csv(path + "/movies.csv", names=["movieId", "movie_title", "genres"], skiprows=1)
-    movie_info["year"] = movie_info["movie_title"].apply(lambda x: x.split(" ")[-1][1:-1])
+    movie_info["year"] = movie_info["movie_title"].apply(lambda x: getYear(x))
+    # movie_info["year"] = movie_info["year"].apply(lambda x: int(x))
+    print(movie_info["year"].head(10))
+    all_year = list(set(movie_info["year"].tolist()))
+    print("all_year=", all_year)
+    all_year = pd.DataFrame({"year": all_year})
+    print(all_year.head(10))
+    all_year.to_csv(path+"/all_year.csv", index=False, header=False)
+
     movie_info["movie_title"] = movie_info["movie_title"].apply(lambda x: " ".join(x.split(" ")[0:-1]))
     all_genres = []
     for g in movie_info["genres"].tolist():
@@ -46,10 +72,25 @@ def getMovieInfo(path):
     all_genres.to_csv(path + "/all_genres.csv", index=False, header=False)
     return movie_info
 def getUserTagMovie(path):  # [movieId, tagId, tag_relevance, tag_name]
-     all_movie_tag_info = getAllMovieTagInfo()
-     user_tag_movie = pd.read_csv(path + "/tags.csv", sep=',', names=["userId", "movieId", "tag_name", "timestamp"],
-                                 skiprows=1)
-     print("user_tag_movie count=\n", user_tag_movie.count())
+     # all_movie_tag_info = getAllMovieTagInfo()
+     userTagMovie = pd.read_csv(path + "/tags.csv", sep=',', names=["userId", "movieId", "tag_name", "timestamp"], skiprows=1)
+     userTagMovie["date"] = userTagMovie["timestamp"].apply(lambda x: time.localtime(x))
+     userTagMovie["year"] = userTagMovie["date"].apply(lambda x: x[0])
+     userTagMovie["month"] = userTagMovie["date"].apply(lambda x: x[1])
+     print(userTagMovie.head(10))
+     print("user_tag_movie count=\n", userTagMovie.count())
+     userMaxTime = userTagMovie.groupby("userId")["timestamp"].max()
+     print(userMaxTime.head(10))
+     userMinTime = userTagMovie.groupby("userId")["timestamp"].min()
+
+     userTagCount = userTagMovie.groupby("userId")['timestamp'].agg({'tagCount': np.size, "maxTime": np.max, "minTime": np.min})
+     print("all agg=\n", userTagCount.head(10))
+     userInfo = pd.DataFrame({"userId": userTagCount.index, "tagCount": userTagCount['tagCount'],
+                              "maxTime": userTagCount["maxTime"], "minTime": userTagCount["minTime"]})
+     userInfo["dur_day"] = (userInfo["maxTime"] - userInfo["minTime"]) / 60 / 60 / 24
+
+     print("user_info=\n", userInfo.head(10))
+     userInfo.to_csv(path+"/all_users.csv", index=False, header=True)
 
 
 
@@ -173,5 +214,5 @@ def generate_movie_data(path):
 # Process finished with exit code 0
 
 if __name__ == '__main__':
-    generate_movie_data(path="./ml-25m")
-    # getUserTagMovie()
+    # generate_movie_data(path="./ml-25m")
+    getUserTagMovie(path="./ml-25m")

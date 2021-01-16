@@ -6,7 +6,7 @@ import math
 
 def getTrainData(path):
     movie_info = pd.read_csv(path + "/all_movie_info.csv", sep=",", names=["movieId", "movie_title", "genres", "year", "all_tag"], skiprows=1)
-
+    user_info = pd.read_csv(path + "/all_users.csv", sep=",", names=["maxTime", "minTime", "tagCount", "userId", "dur_day"], skiprows=1)
 
 def LR(trainData, iter):
     w = np.zeros(trainData.shape[1]-1)
