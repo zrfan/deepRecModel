@@ -87,9 +87,20 @@ class LFM(object):
                     # print("userVec=", self.user_matrix.iloc[userId, :], " itemVec=", self.item_matrix.iloc[itemId, :])
             # alpha *= 0.9
             # print("alpha=", alpha)
+    def test(self):
+        correct, all = 0, 0
+        for userId, items in self.test_user_items.items():
+            for itemId in items:
+                predict = self.lfmPredict(userId, itemId)
+                all += 1
+                if predict > 0.5:
+                    correct += 1
+        print("accuracy=", correct*1.0/all)
 
     def train(self):
         self.SGD()
+        self.test()
+
 
     def initUserItemMatrix(self):
         user = np.random.rand(self.userCount, self.k)
