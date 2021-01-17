@@ -11,7 +11,8 @@ class LFM(object):
         self.itemPool = None
         self.user_matrix = None
         self.item_matrix = None
-        self.user_items = None
+        self.train_user_items = None
+        self.test_user_items = None
         self.shape = None
         self.rmse = None
         self.k = k
@@ -31,10 +32,14 @@ class LFM(object):
         print("userCount=", userCount, " movieCount=", movieCount)
         self.userCount = userCount
         self.itemCount = movieCount
-        groupUserItem = userRating.groupby("userId")
-        self.user_items = dict()
+        groupUserItem = userRating.groupby("userId").apply(lambda x: x.sort_values("timestamp", ascending=True))
+        self.train_user_items = dict()
+        self.test_user_items = dict()
         for user, group in groupUserItem:
-            self.user_items[user] = set(group['movieId'])
+            self.train_user_items[user] = set(group['movieId'][:-2])
+            self.test_user_items[user] = group["movieId"][-2:]
+        print("train_user_items count=", self.train_user_items.__len__(),
+              " test_user_items count=", self.test_user_items.__len__())
 
         itemCount = userRating.groupby("movieId").size()
         self.itemPool = dict(itemCount)
@@ -66,13 +71,14 @@ class LFM(object):
         alpha = self.alpha
         i = 0
         for _ in range(self.iter):
-            for userId, items in self.user_items.items():
+            for userId, items in self.train_user_items.items():
                 i += 1
                 if i % 100 == 0:
                     print("i=", i)
                 userRating = self.randSelectNegSample(userId, items)
                 for itemId, rating in userRating.items():
                     dRate = rating - self.lfmPredict(userId, itemId)
+                    # loss = (u_i * m_j - rating)^2 + \lambda (u_i^2 + m_j^2)
                     for f in range(0, self.k):
                         self.user_matrix.iloc[userId, f] += alpha * (dRate * self.item_matrix.iloc[itemId, f] -
                                                               self.lamda * self.user_matrix.iloc[userId, f])
