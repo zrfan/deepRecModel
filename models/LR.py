@@ -6,7 +6,20 @@ import math
 
 def getTrainData(path):
     movie_info = pd.read_csv(path + "/all_movie_info.csv", sep=",", names=["movieId", "movie_title", "genres", "year", "all_tag"], skiprows=1)
-    user_info = pd.read_csv(path + "/all_users.csv", sep=",", names=["maxTime", "minTime", "tagCount", "userId", "dur_day"], skiprows=1)
+    # user_info = pd.read_csv(path + "/all_users.csv", sep=",", names=["maxTime", "minTime", "tagCount", "userId", "dur_day", "avg_day_movie"], skiprows=1)
+    # rating = pd.read_csv(path + "/ratings.csv", names=["userId", "movieId", "rating", "timestamp"], skiprows=1, nrows=1000)
+
+    all_genres = pd.read_csv(path+"/all_genres.csv", sep=",", names=["genres"])["genres"].tolist()
+    for genres in all_genres:
+        movie_info[genres] = 0
+    for idx, row in movie_info.iterrows():
+        genresStr = row["genres"].split("|")
+        for g in genresStr:
+            row[g] = 1
+    print(movie_info.head(10))
+
+    test = pd.get_dummies(movie_info["year"])
+    print(test.head(10))
 
 def LR(trainData, iter):
     w = np.zeros(trainData.shape[1]-1)
@@ -23,4 +36,4 @@ def LR(trainData, iter):
 
 if __name__ == '__main__':
     train_data = getTrainData(path="../data/ml-25m/")
-    LR(train_data, 20)
+    # LR(train_data, 20)
