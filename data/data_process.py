@@ -6,7 +6,7 @@ import math
 
 def mergeTag(df, column="all_tag"):
     tags = list(df[column])
-    return ','.join(tags)
+    return ':'.join(tags)
 def mergeTagName(df, column="tag_name"):
     names = list(df[column])
     return ":".join(names)
@@ -78,7 +78,8 @@ def getUserTagMovie(path):  # [movieId, tagId, tag_relevance, tag_name]
      userTagMovie["year"] = userTagMovie["date"].apply(lambda x: x[0])
      userTagMovie["month"] = userTagMovie["date"].apply(lambda x: x[1])
      print(userTagMovie.head(10))
-     print("user_tag_movie count=\n", userTagMovie.count())
+     print("user_tag_movie count=\n", userTagMovie.count(), " max time=", userTagMovie.max(),
+           " min time=", userTagMovie.min())
      userMaxTime = userTagMovie.groupby("userId")["timestamp"].max()
      print(userMaxTime.head(10))
      userMinTime = userTagMovie.groupby("userId")["timestamp"].min()
@@ -88,6 +89,7 @@ def getUserTagMovie(path):  # [movieId, tagId, tag_relevance, tag_name]
      userInfo = pd.DataFrame({"userId": userTagCount.index, "tagCount": userTagCount['tagCount'],
                               "maxTime": userTagCount["maxTime"], "minTime": userTagCount["minTime"]})
      userInfo["dur_day"] = (userInfo["maxTime"] - userInfo["minTime"]) / 60 / 60 / 24
+     userInfo["avg_day_movie"] = userInfo["dur_day"] / userInfo["tagCount"]
 
      print("user_info=\n", userInfo.head(10))
      userInfo.to_csv(path+"/all_users.csv", index=False, header=True)
@@ -214,5 +216,5 @@ def generate_movie_data(path):
 # Process finished with exit code 0
 
 if __name__ == '__main__':
-    # generate_movie_data(path="./ml-25m")
-    getUserTagMovie(path="./ml-25m")
+    generate_movie_data(path="./ml-25m")
+    # getUserTagMovie(path="./ml-25m")

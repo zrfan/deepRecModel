@@ -10,16 +10,24 @@ def getTrainData(path):
     # rating = pd.read_csv(path + "/ratings.csv", names=["userId", "movieId", "rating", "timestamp"], skiprows=1, nrows=1000)
 
     all_genres = pd.read_csv(path+"/all_genres.csv", sep=",", names=["genres"])["genres"].tolist()
+    years = pd.read_csv(path+"/all_year.csv", sep=",", names=["year"])["year"].tolist()
     for genres in all_genres:
         movie_info[genres] = 0
+    for year in years:
+        movie_info[year] = 0
+    movie_info["movie_tag_count"] = 0
+
+    print(movie_info["all_tag"].head(10))
     for idx, row in movie_info.iterrows():
+        year = row["year"]
+        row[year] = 1
         genresStr = row["genres"].split("|")
         for g in genresStr:
             row[g] = 1
-    print(movie_info.head(10))
+        tags = row["all_tag"].split(":")
+        row["movie_tag_count"] = len(tags)
 
-    test = pd.get_dummies(movie_info["year"])
-    print(test.head(10))
+    print(movie_info.head(10))
 
 def LR(trainData, iter):
     w = np.zeros(trainData.shape[1]-1)
