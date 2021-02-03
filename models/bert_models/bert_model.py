@@ -9,5 +9,5 @@ def checkModel(path):
     print(var)
 
 if __name__ == "__main__":
-    checkModel("../data/pretrain/")
+    checkModel("../data/pretrain_model/")
 
