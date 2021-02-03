@@ -31,10 +31,10 @@ def checkModelGraph(path):
             seg_ids.append(0)
             mask.append(0)
         # model inputs: input_ids , input_mask, segment_ids, label_id
-        input_ids = graph.get_tensor_by_name("input_ids")
-        input_mask = graph.get_tensor_by_name("input_mask")
-        segment_ids = graph.get_tensor_by_name("segment_ids")
-        output = graph.get_tensor_by_name("cls/seq_relationship/Mean")
+        input_ids = graph.get_tensor_by_name("input_ids:0")
+        input_mask = graph.get_tensor_by_name("input_mask:0")
+        segment_ids = graph.get_tensor_by_name("segment_ids:0")
+        output = graph.get_tensor_by_name("cls/seq_relationship/Mean:0")
         result = sess.run(output, feed_dict={input_ids: tokens, input_mask: mask, segment_ids: seg_ids})
         print("result=", result)
 
