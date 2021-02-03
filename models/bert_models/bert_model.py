@@ -20,7 +20,7 @@ def checkModelGraph(path):
         graph = tf.get_default_graph()  # 获取当前图，为了后续训练时恢复变量
         tensor_name_list = [tensor.name for tensor in graph.as_graph_def().node] # 得到当前图中所有变量的名称
         for k in tensor_name_list:
-            var = graph.get_tensor_by_name(k)
+            var = graph.get_tensor_by_name(k+":0")
             print("get variable:", k, " shape=", var.shape)
 
         print("all var len=", len(tensor_name_list))
