@@ -35,7 +35,7 @@ def checkModelGraph(path):
         input_mask = graph.get_tensor_by_name("input_mask:0")
         segment_ids = graph.get_tensor_by_name("segment_ids:0")
         output = graph.get_tensor_by_name("cls/seq_relationship/Mean:0")
-        result = sess.run(output, feed_dict={input_ids: [tokens], input_mask: [mask], segment_ids: [seg_ids]})
+        result = sess.run(output, feed_dict={input_ids: [tokens], input_mask: [mask], segment_ids: seg_ids})
         print("result=", result)
 
 
