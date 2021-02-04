@@ -44,7 +44,7 @@ def checkModelGraph(path):
         constant_graph = tf.graph_util.convert_variables_to_constants(sess, sess.graph_def, ['op'])
 
         with tf.gfile.FastGFile(path+'/test_model.pb', mode='wb') as f:
-　　        f.write(constant_graph.SerializeToString())
+            f.write(constant_graph.SerializeToString())
 
 
 
