@@ -40,11 +40,14 @@ def checkModelGraph(path):
         output = graph.get_tensor_by_name("bert/pooler/dense/Tanh:0")
         result = sess.run(output, feed_dict={input_ids: [tokens], input_mask: [mask], segment_ids: seg_ids})
         print("result=", result)
+        #savedmodel文件保存
+　　    builder = tf.saved_model.builder.SavedModelBuilder(path+'/saved_bert_model/')
+　　    builder.add_meta_graph_and_variables(sess)
+　　    builder.save()
 
-        constant_graph = tf.graph_util.convert_variables_to_constants(sess, sess.graph_def)
-
-        with tf.gfile.FastGFile(path+'/test_model.pb', mode='wb') as f:
-            f.write(constant_graph.SerializeToString())
+        # constant_graph = tf.graph_util.convert_variables_to_constants(sess, sess.graph_def)
+        # with tf.gfile.FastGFile(path+'/test_model.pb', mode='wb') as f:
+        #     f.write(constant_graph.SerializeToString())
 
 
 
