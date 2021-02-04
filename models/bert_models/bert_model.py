@@ -41,6 +41,12 @@ def checkModelGraph(path):
         result = sess.run(output, feed_dict={input_ids: [tokens], input_mask: [mask], segment_ids: seg_ids})
         print("result=", result)
 
+        constant_graph = tf.graph_util.convert_variables_to_constants(sess, sess.graph_def, ['op'])
+
+        with tf.gfile.FastGFile(path+'/test_model.pb', mode='wb') as f:
+　　        f.write(constant_graph.SerializeToString())
+
+
 
 if __name__ == "__main__":
     path = "../../data/pretrain_model/"
