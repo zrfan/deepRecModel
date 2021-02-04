@@ -42,7 +42,7 @@ def checkModelGraph(path):
         print("result=", result)
         #savedmodel文件保存
         builder = tf.saved_model.builder.SavedModelBuilder(path+'/saved_bert_model/')
-        builder.add_meta_graph_and_variables(sess)
+        builder.add_meta_graph_and_variables(sess, tags=['serve'])
         builder.save()
 
         # constant_graph = tf.graph_util.convert_variables_to_constants(sess, sess.graph_def)
