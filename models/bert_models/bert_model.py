@@ -38,7 +38,7 @@ def checkModelGraph(path):
         segment_ids = graph.get_tensor_by_name("segment_ids:0")
 
         pooledOutput = graph.get_tensor_by_name("bert/pooler/dense/Tanh:0")
-        result = sess.run(output, feed_dict={input_ids: [tokens], input_mask: [mask], segment_ids: seg_ids})
+        result = sess.run(pooledOutput, feed_dict={input_ids: [tokens], input_mask: [mask], segment_ids: seg_ids})
         print("result=", result)
         #savedmodel文件保存
         # x 为输入tensor, keep_prob为dropout的prob tensor 
