@@ -37,12 +37,22 @@ def checkModelGraph(path):
         input_mask = graph.get_tensor_by_name("input_mask:0")
         segment_ids = graph.get_tensor_by_name("segment_ids:0")
 
-        output = graph.get_tensor_by_name("bert/pooler/dense/Tanh:0")
+        pooledOutput = graph.get_tensor_by_name("bert/pooler/dense/Tanh:0")
         result = sess.run(output, feed_dict={input_ids: [tokens], input_mask: [mask], segment_ids: seg_ids})
         print("result=", result)
         #savedmodel文件保存
+        # x 为输入tensor, keep_prob为dropout的prob tensor 
+        inputs = {'input_ids': tf.saved_model.utils.build_tensor_info(input_ids), 
+            'input_mask': tf.saved_model.utils.build_tensor_info(input_mask),
+            'segment_ids': tf.saved_model.utils.build_tensor_info(segment_ids)}
+
+        # y 为最终需要的输出结果tensor 
+        outputs = {'output' : tf.saved_model.utils.build_tensor_info(pooledOutput)}
+
+        signature = tf.saved_model.signature_def_utils.build_signature_def(inputs, outputs, 'token_signature')
         builder = tf.saved_model.builder.SavedModelBuilder(path+'/saved_bert_model/')
-        builder.add_meta_graph_and_variables(sess, tags=['serve'])
+        builder.add_meta_graph_and_variables(sess, tags=[tf.saved_model.tag_constants.SERVING], 
+                signature_def_map={"tokens": signature})  # serve
         builder.save()
 
         # constant_graph = tf.graph_util.convert_variables_to_constants(sess, sess.graph_def)
