@@ -4,7 +4,7 @@ from datetime import datetime
 import time
 import math
 import csv
-from data.data_process import getYear
+from data_process import getYear
 
 def generate_user_features(path):
     user_info = pd.read_csv(path+"/users.dat", header=None, encoding='utf-8', delimiter="::", quoting=csv.QUOTE_NONE,
