@@ -49,7 +49,7 @@ def checkModelGraph(path):
         # y 为最终需要的输出结果tensor 
         outputs = {'output' : tf.saved_model.utils.build_tensor_info(pooledOutput)}
 
-        signature = tf.saved_model.signature_def_utils.build_signature_def(inputs, outputs, 'token_signature')
+        signature = tf.saved_model.signature_def_utils.build_signature_def(inputs, outputs, 'get_pooled_out_method')
         builder = tf.saved_model.builder.SavedModelBuilder(path+'/saved_bert_model/')
         builder.add_meta_graph_and_variables(sess, tags=[tf.saved_model.tag_constants.SERVING], 
                 signature_def_map={"tokens": signature})  # serve

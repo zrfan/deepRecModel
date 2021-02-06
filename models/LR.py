@@ -69,4 +69,6 @@ def LR(trainData, iter):
 if __name__ == '__main__':
     # train_data = getTrainData(path="../data/ml-25m/")
     train_data = get1MTrainData(path="../data/ml-1m/")
-    # LR(train_data, 20)
+    w = LR(train_data, 20)
+    print("LR weight=", w)
+    
