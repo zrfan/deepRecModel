@@ -216,6 +216,6 @@ def generate_movie_data(path):
 # Process finished with exit code 0
 
 if __name__ == '__main__':
-    # generate_movie_data(path="./ml-25m")
-    generate_movie_data(path="./ml-1m/")
+    generate_movie_data(path="./ml-25m")
+    # generate_movie_data(path="./ml-1m/")
     # getUserTagMovie(path="./ml-25m")
