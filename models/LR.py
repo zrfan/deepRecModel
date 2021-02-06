@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -71,4 +72,3 @@ if __name__ == '__main__':
     train_data = get1MTrainData(path="../data/ml-1m/")
     w = LR(train_data, 20)
     print("LR weight=", w)
-    

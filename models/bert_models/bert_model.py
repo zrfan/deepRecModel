@@ -1,3 +1,5 @@
+#-*- coding: utf-8 -*
+# tf1.13
 import collections
 import tensorflow as tf
 from tensorflow.python.tools import inspect_checkpoint as chkp
