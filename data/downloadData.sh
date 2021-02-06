@@ -4,6 +4,7 @@
 # movielens ml-25m dataset
 wget http://files.grouplens.org/datasets/movielens/ml-25m.zip
 wget http://files.grouplens.org/datasets/movielens/ml-1m.zip
+python 1m_data_process.py
 
 
 # ESSM public dataset, Alibaba click and conversion prediction
