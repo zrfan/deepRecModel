@@ -5,7 +5,7 @@ from datetime import datetime
 from time import time
 import math
 import csv
-from data.data_process import getYear
+from data_process import getYear
 
 def getTrainData(path):
     movie_info = pd.read_csv(path + "/all_movie_info.csv", sep=",", names=["movieId", "movie_title", "genres", "year", "all_tag"], skiprows=1)
