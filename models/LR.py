@@ -12,8 +12,8 @@ def getTrainData(path):
     # user_info = pd.read_csv(path + "/all_users.csv", sep=",", names=["maxTime", "minTime", "tagCount", "userId", "dur_day", "avg_day_movie"], skiprows=1)
     # rating = pd.read_csv(path + "/ratings.csv", names=["userId", "movieId", "rating", "timestamp"], skiprows=1, nrows=1000)
 
-    all_genres = pd.read_csv(path+"/all_genres.csv", sep=",", names=["genres"])["genres"].tolist()
-    years = pd.read_csv(path+"/all_year.csv", sep=",", names=["year"])["year"].tolist()
+    all_genres = pd.read_csv(path+"/../all_genres.csv", sep=",", names=["genres"])["genres"].tolist()
+    years = pd.read_csv(path+"/../all_year.csv", sep=",", names=["year"])["year"].tolist()
     for genres in all_genres:
         movie_info[genres] = 0
     for year in years:
@@ -53,8 +53,8 @@ def get1MTrainData(path):
     print(user_info.head(10))
     movie_info = pd.read_csv(path+"/movies.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["movieId", "title", "genres"])
     movie_info["year"] = movie_info["title"].apply(lambda x: getYear(x))
-    all_genres = pd.read_csv(path + "/all_genres.csv", sep=",", names=["genres"])["genres"].tolist()
-    years = pd.read_csv(path + "/all_year.csv", sep=",", names=["year"])["year"].tolist()
+    all_genres = pd.read_csv(path + "/../all_genres.csv", sep=",", names=["genres"])["genres"].tolist()
+    years = pd.read_csv(path + "..//all_year.csv", sep=",", names=["year"])["year"].tolist()
     for genres in all_genres:
         movie_info["generes_"+genres] = 0
     for year in years:
