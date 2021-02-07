@@ -5,7 +5,19 @@ from datetime import datetime
 from time import time
 import math
 import csv
-from data_process import getYear
+# from data_process import getYear
+
+def getYear(x):
+    arr = x.split("(")
+    if len(arr) == 1:
+        return 0
+    y = 0
+    for t in arr:
+        try:
+            y = int(t[0:4])
+        except:
+            continue
+    return y
 
 def getTrainData(path):
     movie_info = pd.read_csv(path + "/all_movie_info.csv", sep=",", names=["movieId", "movie_title", "genres", "year", "all_tag"], skiprows=1)
