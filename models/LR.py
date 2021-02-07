@@ -83,6 +83,8 @@ def get1MTrainData(path):
     print(movie_info.head(10))
     rating_info = pd.read_csv(path+"/ratings.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
     print(rating_info.head(10))
+    test = user_info.set_index("userId")
+    print(test.head(10))
 
     return user_info.set_index("userId").to_dict(), movie_info.set_index("movieId").to_dict(), rating_info, user_cols, movie_cols
 def LR(userData, itemData, clickData, user_cols, movie_cols, iter):
