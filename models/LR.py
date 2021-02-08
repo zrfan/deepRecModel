@@ -18,9 +18,9 @@ def LR(userData, itemData, clickData, user_cols, movie_cols, iter):
             # print("trainData=", trainData)
             xi = np.asarray(trainData)
             yi = float(row["ratings"])/5
-            print("w=", w)
+            # print("w=", w)
             wx = np.dot(w, xi)
-            print("wx=", wx)
+            # print("wx=", wx)
             w += alpha * xi * (yi - (np.exp(wx)/(1+np.exp(wx))))
     return w
 
