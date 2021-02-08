@@ -80,6 +80,7 @@ def get1MTrainData(path):
         gList = row["genres"].split("|")
         for g in gList:
             movie_info.loc[idx, "genres_"+g] = 1
+    movie_info = movie_info[movie_cols]
     print(movie_info.head(10))
 
     rating_info = pd.read_csv(path+"/ratings.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
