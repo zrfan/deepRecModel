@@ -85,15 +85,17 @@ def get1MTrainData(path):
 
     rating_info = pd.read_csv(path+"/ratings.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
     
-    return user_info.values, movie_info.values, rating_info, user_cols, movie_cols
+    return user_info, movie_info, rating_info, user_cols, movie_cols
 def LR(userData, itemData, clickData, user_cols, movie_cols, iter):
     # print("uid=1", userData.keys())
     w = np.zeros(len(user_cols)+len(movie_cols)-2)
     alpha = 0.001
     for j in range(iter):
         for idx, row in clickData.iterrows():
-            print("row=", row, " user_info:", userData[int(row["userId"])-1], )
-            trainData = userData[int(row["userId"])-1].tolist() + itemData[int(row["movieId"])-1].tolist()
+            userId, itemId = int(row["userId"]), int(row["movieId"])
+            userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
+            print("row=", row, " user_info:", userInfo )
+            trainData = userInfo.tolist() + movieInfo.tolist()
             print("trainData=", trainData)
             xi = trainData
             yi = float(row["ratings"])/5
