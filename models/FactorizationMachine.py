@@ -55,7 +55,7 @@ class FM(object):
                     if x[i] != 0:
                         w[i, 0] = w[i, 0] - self.alpha * loss * x[i]
                         for j in range(k):
-                            v[i, j] = v[i, j] - self.alpha * loss * (x[i] * inter_1[j] - v[i,j]*x[i]*x[i])
+                            v[i, j] = v[i, j] - self.alpha * loss * (x[i] * inter_1[0, j] - v[i,j]*x[i]*x[i])
         
         self._w_0, self._w, self._v = w_0, w, w
     def predict(self, data):
