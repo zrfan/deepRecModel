@@ -34,10 +34,11 @@ class FM(object):
                 print("v=", v)
                 y = float(row["ratings"])/5
                 # 对应点积的地方通常会有sum，对应位置积的地方通常没有
-                inter_1 = np.multiply(x, v).sum(axis=0)  # xi * vi, xi与vi的矩阵点积
+                inter_1 = np.multiply(x, v).sum(axis=0)  # xi * vi, xi与vi的矩阵点积  (1, 8)
                 print("inter_1=", inter_1)
                 # xi与xi的对应位置乘积 与 xi^2与vi^2对应位置的乘积的点积，
                 inter_2 = np.multiply(x, x) * np.multiply(v, v)    # multiply对应元素相乘
+                inter_2 = inter_2.sum(axis=0)    # (1, 8)
                 print("inter_2=", inter_2)
                 # 完成交叉项 xi*vi*xi*vi - xi^2*vi^2
                 interaction = np.sum(np.multiply(inter_1, inter_1) - inter_2) / 2
@@ -46,14 +47,14 @@ class FM(object):
                 p = w_0 + x*w + interaction
                 print("p=", p)
                 # 计算sigmoid（y*pred_y）-1
-                loss = (self.sigmoid(y * p[0, 0]) -1)*y if self.task_type == 0 else self.sigmoid(p[0, 0])-y
+                loss = (self.sigmoid(y * p) -1)*y if self.task_type == 0 else self.sigmoid(p)-y
                 # 更新参数
                 w_0 = w_0 - self.alpha * loss
                 for i in range(n):
                     if x[i] != 0:
                         w[i, 0] = w[i, 0] - self.alpha * loss * x[i]
                         for j in range(k):
-                            v[i, j] = v[i, j] - self.alpha * loss * (x[i] * inter_1[0, j] - v[i,j]*x[i]*x[i])
+                            v[i, j] = v[i, j] - self.alpha * loss * (x[i] * inter_1[j] - v[i,j]*x[i]*x[i])
         
         self._w_0, self._w, self._v = w_0, w, w
     def predict(self, data):
