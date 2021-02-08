@@ -70,7 +70,7 @@ def get1MTrainData(path):
     yearInfo = pd.get_dummies(movie_info["year"], sparse=True)
     yearInfo.columns = ["year_"+str(x) for x in yearInfo.columns ]
     print(yearInfo.head(10))
-    movie_info = movie_info.join(yearInfo)[movie_cols]
+    movie_info = movie_info.join(yearInfo)
     print(movie_info.head(10))
     movie_info = movie_info.set_index("movieId")
     print(movie_info.head(10))
