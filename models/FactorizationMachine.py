@@ -47,7 +47,7 @@ class FM(object):
                 p = w_0 + x*w + interaction
                 print("p=", p)
                 # 计算sigmoid（y*pred_y）-1
-                loss = (self.sigmoid(y * p) -1)*y if self.task_type == 0 else self.sigmoid(p)-y
+                loss = (self.sigmoid(y * p[0, 0]) -1)*y if self.task_type == 0 else self.sigmoid(p[0,0])-y
                 # 更新参数
                 w_0 = w_0 - self.alpha * loss
                 for i in range(n):
