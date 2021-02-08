@@ -23,8 +23,8 @@ class FM(object):
         # 初始化参数
         w = np.zeros((n, 1))  # n是特征的个数
         w_0 = 0
-        # v = normalvariate(0, 0.2) * np.ones((n, k))
-        v = np.random.normal(size=(n, k))
+        v = normalvariate(0, 0.2) * np.ones((n, k))
+        # v = np.random.normal(size=(n, k))
         for it in range(self.iter):
             for idx, row  in rating_info.iterrows():
                 userId, itemId = int(row["userId"]), int(row["movieId"])
@@ -35,11 +35,11 @@ class FM(object):
                 print("v=", v)
                 y = float(row["ratings"])/5
                 # 对应点积的地方通常会有sum，对应位置积的地方通常没有
-                inter_1 = np.multiply(x, v).sum(axis=0)  # xi * vi, xi与vi的矩阵点积  (1, 8)
+                inter_1 = np.multiply(x, v)  # xi * vi, xi与vi的矩阵点积  (1, 8)
                 print("inter_1=", inter_1)
                 # xi与xi的对应位置乘积 与 xi^2与vi^2对应位置的乘积的点积，
                 inter_2 = np.multiply(x, x) * np.multiply(v, v)    # multiply对应元素相乘
-                inter_2 = inter_2.sum(axis=0)    # (1, 8)
+                inter_2 = inter_2    # (1, 8)
                 print("inter_2=", inter_2)
                 # 完成交叉项 xi*vi*xi*vi - xi^2*vi^2
                 interaction = np.sum(np.multiply(inter_1, inter_1) - inter_2, axis=1) / 2
