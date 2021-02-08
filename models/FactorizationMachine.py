@@ -42,7 +42,7 @@ class FM(object):
                 inter_2 = inter_2.sum(axis=0)    # (1, 8)
                 print("inter_2=", inter_2)
                 # 完成交叉项 xi*vi*xi*vi - xi^2*vi^2
-                interaction = np.sum(np.multiply(inter_1, inter_1) - inter_2) / 2
+                interaction = np.sum(np.multiply(inter_1, inter_1) - inter_2, axis=1) / 2
                 print("interaction=", interaction)
                 # 计算预测的输出
                 p = w_0 + x*w + interaction
