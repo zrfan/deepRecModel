@@ -29,7 +29,7 @@ class FM(object):
                 userId, itemId = int(row["userId"]), int(row["movieId"])
                 userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
                 trainData = userInfo.tolist() + movieInfo.tolist()
-                x = np.asarray(trainData)
+                x = np.asarray(trainData)[:, np.newaxis]
                 print("x=", x)
                 print("v=", v)
                 y = float(row["ratings"])/5
