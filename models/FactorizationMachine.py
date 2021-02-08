@@ -23,7 +23,8 @@ class FM(object):
         # 初始化参数
         w = np.zeros((n, 1))  # n是特征的个数
         w_0 = 0
-        v = normalvariate(0, 0.2) * np.ones((n, k))
+        # v = normalvariate(0, 0.2) * np.ones((n, k))
+        v = np.random.normal(size=(n, k))
         for it in range(self.iter):
             for idx, row  in rating_info.iterrows():
                 userId, itemId = int(row["userId"]), int(row["movieId"])
