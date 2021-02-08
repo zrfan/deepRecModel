@@ -66,7 +66,7 @@ def get1MTrainData(path):
     movie_info["year"] = movie_info["title"].apply(lambda x: getYear(x))
     genresList = pd.read_csv(path + "/../all_genres.csv", sep=",", names=["genres"])["genres"].tolist()
     yearList = pd.read_csv(path + "..//all_year.csv", sep=",", names=["year"])["year"].tolist()
-    movie_cols = ["generes_" + x for x in genresList] + ["year_" + str(x) for x in yearList] + ["movieId"]
+    movie_cols = ["genres_" + x for x in genresList] + ["year_" + str(x) for x in yearList] + ["movieId"]
     yearInfo = pd.get_dummies(movie_info["year"], sparse=True)
     yearInfo.columns = ["year_"+str(x) for x in yearInfo.columns ]
     print(yearInfo.head(10))
