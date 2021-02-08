@@ -87,16 +87,15 @@ def get1MTrainData(path):
     
     return user_info, movie_info, rating_info, user_cols, movie_cols
 def LR(userData, itemData, clickData, user_cols, movie_cols, iter):
-    # print("uid=1", userData.keys())
     w = np.zeros(len(user_cols)+len(movie_cols)-2)
     alpha = 0.001
     for j in range(iter):
         for idx, row in clickData.iterrows():
             userId, itemId = int(row["userId"]), int(row["movieId"])
             userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
-            print("row=", row, " user_info:", userInfo )
+            # print("row=", row, " user_info:", userInfo )
             trainData = userInfo.tolist() + movieInfo.tolist()
-            print("trainData=", trainData)
+            # print("trainData=", trainData)
             xi = np.asarray(trainData)
             yi = float(row["ratings"])/5
             print("w=", w)
@@ -108,5 +107,5 @@ def LR(userData, itemData, clickData, user_cols, movie_cols, iter):
 if __name__ == '__main__':
     # train_data = getTrainData(path="../data/ml-25m/")
     user_info, movie_info, rating_info, user_cols, movie_cols = get1MTrainData(path="../data/ml-1m/")
-    w = LR(user_info, movie_info, rating_info,user_cols, movie_cols, 20)
+    w = LR(user_info, movie_info, rating_info,user_cols, movie_cols, 200)
     print("LR weight=", w)
