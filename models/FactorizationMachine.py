@@ -17,7 +17,7 @@ class FM(object):
     def sigmoid(self, inx):
         return 1.0 / (1 + exp(-inx))
     def fit(self):
-        user_info, movie_info, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
+        userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
         k = self.feature_potential
         m, n = len(rating_info), len(user_cols)+len(movie_cols)-2
         # 初始化参数
