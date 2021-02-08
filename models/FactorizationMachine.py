@@ -9,16 +9,14 @@ import numpy as np
 from data_util import get1MTrainData
 
 class FM(object):
-    def __init__(self, data_path, iter, task_type, k=8):
+    def __init__(self, data_path, iter, task_type, k=8, alpha=0.001):
         self.data_path, self.feature_potential, self.iter = data_path, k, iter
         self.task_type = task_type  # 0: classification 1: regression
-        self.alpha, self._w, self._w_0, self.v = None, None, None, None
+        self.alpha, self._w, self._w_0, self.v = alpha, None, None, None
         self.with_col, self.first_col = None, None
     def sigmoid(self, inx):
         return 1.0 / (1 + exp(-inx))
-    def fit(self, data, feature_potential=8, alpha=0.01, iter=100):
-        # alpha 是学习速率
-        self.alpha, self.iter, self.feature_potential = alpha, iter, feature_potential
+    def fit(self):
         user_info, movie_info, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
         k = self.feature_potential
         m, n = len(rating_info), len(user_cols)+len(movie_cols)-2
