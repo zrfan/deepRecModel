@@ -51,58 +51,58 @@ def get1MTrainData(path):
     ageList = [1, 18, 25, 35, 45, 50, 56]
     occupationList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     user_cols = ["gender_"+str(x) for x in genderList] + ["age_"+str(x) for x in ageList] + ["occ_"+str(x) for x in occupationList] + ["userId"]
-    for g in genderList:
-        user_info["gender_"+str(g)] = 0
-    for a in ageList:
-        user_info["age_"+str(a)] = 0
-    for o in occupationList:
-        user_info["occ_"+str(o)] = 0
-    for idx, row in user_info.iterrows():
-        gender, age, occ = str(row["gender"]), str(row["age"]), str(row["occupation"])
-        row["gender_"+gender], row["age_"+age], row["occ_"+occ] = 1, 1, 1
-
-    user_info = user_info[user_cols]
+    genderInfo = pd.get_dummies(user_info["gender"], sparse=True)
+    ageInfo = pd.get_dummies(user_info["age"], sparse=True)
+    occInfo = pd.get_dummies(user_info["occupation"], sparse=True)
+    occInfo.columns =["occ_"+str(x) for x in occupationList]
+    ageInfo.columns = ["age_"+str(x) for x in ageList]
+    genderInfo.columns = ["gender_"+x for x in genderList]
+    # print("user\n", user_info.head(10))
+    # print(ageInfo.head(10))
+    # print(genderInfo.head(10))
+    # print(occInfo.head(10))
+    user_info = user_info.join(genderInfo).join(ageInfo).join(occInfo)[user_cols]
     print(user_info.head(10))
+    userDict = {}
+    # for idx, row in genderInfo.iterrows():
+    #     if idx not in userDict.keys():
+
     movie_info = pd.read_csv(path+"/movies.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["movieId", "title", "genres"])
     movie_info["year"] = movie_info["title"].apply(lambda x: getYear(x))
-    all_genres = pd.read_csv(path + "/../all_genres.csv", sep=",", names=["genres"])["genres"].tolist()
-    years = pd.read_csv(path + "..//all_year.csv", sep=",", names=["year"])["year"].tolist()
-    for genres in all_genres:
-        movie_info["generes_"+genres] = 0
-    for year in years:
-        movie_info["year_"+str(year)] = 0
+    genresList = pd.read_csv(path + "/../all_genres.csv", sep=",", names=["genres"])["genres"].tolist()
+    yearList = pd.read_csv(path + "..//all_year.csv", sep=",", names=["year"])["year"].tolist()
+    movie_cols = ["generes_" + x for x in genresList] + ["year_" + str(x) for x in yearList] + ["movieId"]
+    genresInfo = pd.get_dummies(movie_info["genres"], sparse=True)
+    yearInfo = pd.get_dummies(movie_info["year"], sparse=True)
+    print("genres", genresInfo.head(10))
+    genresInfo.columns = ["generes_"+x  for x in genresInfo.columns if x in movie_cols]
+    yearInfo.columns = ["year_"+x for x in yearInfo.columns ]
+    movie_info = movie_info.join(genresInfo).join(yearInfo)[movie_cols]
 
-    for idx, row in movie_info.iterrows():
-        year, genresStr = str(row["year"]), row["genres"].split("|")
-        row["year_"+year] = 1
-        for g in genresStr:
-            row["generes_"+g] = 1
-    movie_cols = ["generes_"+x for x in all_genres]+["year_"+str(x) for x in years]+["movieId"]
-    print("movie_cols=", movie_cols)
-    movie_info = movie_info[movie_cols]
     print(movie_info.head(10))
     rating_info = pd.read_csv(path+"/ratings.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
-    print(rating_info.head(10))
-    test = user_info.set_index("userId")
-    print(test.head(10))
+    user_info = user_info.set_index("userId")
+    print(user_info.head(10))
+    movie_info = movie_info.set_index("movieId")
 
-    return user_info.set_index("userId").to_dict(), movie_info.set_index("movieId").to_dict(), rating_info, user_cols, movie_cols
+
+    return user_info.values, movie_info.values, rating_info, user_cols, movie_cols
 def LR(userData, itemData, clickData, user_cols, movie_cols, iter):
-    print("uid=1", userData.keys())
-    w = np.zeros(len(user_cols)+len(movie_cols)-1)
+    # print("uid=1", userData.keys())
+    w = np.zeros(len(user_cols)+len(movie_cols)-2)
     alpha = 0.001
     for j in range(iter):
         for idx, row in clickData.iterrows():
-            print("row=", row)
-            trainData = userData.get(row["userId"]) + itemData.get(row["movieId"])
+            print("row=", row, " user_info:", userData[int(row["userId"])-1], )
+            trainData = userData[int(row["userId"])-1].tolist() + itemData[int(row["movieId"])-1].tolist()
             print("trainData=", trainData)
-            xi = trainData[0:-1]
+            xi = trainData
             yi = float(row["ratings"])/5
+            print("w=", w)
             wx = np.dot(w, xi)
+            print("wx=", wx)
             w += alpha * xi * (yi - (np.exp(wx)/(1+np.exp(wx))))
     return w
-
-
 
 if __name__ == '__main__':
     # train_data = getTrainData(path="../data/ml-25m/")
