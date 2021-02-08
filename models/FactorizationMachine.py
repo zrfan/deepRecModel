@@ -32,7 +32,7 @@ class FM(object):
                 trainData = userInfo.tolist() + movieInfo.tolist()
                 x = np.asarray(trainData)[:, np.newaxis]
                 # print("x=", x)
-                print("v=", v)
+                # print("v=", v)
                 y = float(row["ratings"])/5
                 # 对应点积的地方通常会有sum，对应位置积的地方通常没有
                 inter_1 = np.multiply(x, v)  # xi * vi, xi与vi的矩阵点积  (1, 8)
@@ -56,6 +56,7 @@ class FM(object):
                         w[i, 0] = w[i, 0] - self.alpha * loss * x[i]
                         for j in range(k):
                             v[i, j] = v[i, j] - self.alpha * loss * (x[i] * inter_1[0, j] - v[i,j]*x[i]*x[i])
+                print("w=", w)
         
         self._w_0, self._w, self._v = w_0, w, w
     def predict(self, data):
