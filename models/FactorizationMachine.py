@@ -30,6 +30,8 @@ class FM(object):
                 userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
                 trainData = userInfo.tolist() + movieInfo.tolist()
                 x = np.asarray(trainData)
+                print("x=", x)
+                print("v=", v)
                 y = float(row["ratings"])/5
                 # 对应点积的地方通常会有sum，对应位置积的地方通常没有
                 inter_1 = x * v   # xi * vi, xi与vi的矩阵点积
