@@ -97,7 +97,7 @@ def LR(userData, itemData, clickData, user_cols, movie_cols, iter):
             print("row=", row, " user_info:", userInfo )
             trainData = userInfo.tolist() + movieInfo.tolist()
             print("trainData=", trainData)
-            xi = trainData
+            xi = np.asarray(trainData)
             yi = float(row["ratings"])/5
             print("w=", w)
             wx = np.dot(w, xi)
