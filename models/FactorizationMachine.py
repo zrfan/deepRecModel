@@ -31,18 +31,16 @@ class FM(object):
                 userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
                 trainData = userInfo.tolist() + movieInfo.tolist()
                 x = np.asarray(trainData)[:, np.newaxis]
-                # print("x=", x)
-                # print("v=", v)
                 y = float(row["ratings"])/5
-                # FM的二阶项：1/2 \sum_{f=1}^k ((\sum_{i=1}^n v_{i,f}x_i)^2 - \sum_{i=1}^n v_{i,f}^2 * x_i^2)
                 # 对应点积的地方通常会有sum，对应位置积的地方通常没有
-                inter_sum = np.multiply(x, v).sum(axis=0)  # xi * vi, xi与vi的矩阵点积  (1, 8)
-                print("inter_1=", inter_sum)
+                # FM的二阶项：1/2 \sum_{f=1}^k ((\sum_{i=1}^n v_{i,f}x_i)^2 - \sum_{i=1}^n v_{i,f}^2 * x_i^2)
+                inter_sum = x * v  # xi * vi, xi与vi的矩阵点积  shape=(1, 8)
+                print("inter_sum=", inter_sum)
                 # xi与xi的对应位置乘积 与 xi^2与vi^2对应位置的乘积的点积，
                 inter_sum_sqr = np.multiply(x, x) * np.multiply(v, v)    # multiply对应元素相乘
-                inter_sum_sqr = inter_sum_sqr.sum(axis=0)    # (1, 8)
+                inter_sum_sqr = inter_sum_sqr.sum(axis=0)    # shape=(1, 8)
                 print("inter_2=", inter_sum_sqr)
-                # 完成交叉项 xi*vi*xi*vi - xi^2*vi^2
+                # 交叉项 xi*vi*xi*vi - xi^2*vi^2
                 interaction = np.sum(np.multiply(inter_sum, inter_sum) - inter_sum_sqr, axis=0) / 2
                 print("interaction=", interaction)
                 # 计算预测的输出
