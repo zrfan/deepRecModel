@@ -55,10 +55,10 @@ class FM(object):
                 # 更新参数
                 w_0 = w_0 - self.alpha * loss
                 for i in range(n):
-                    if x[i] != 0:
-                        w[i, 0] = w[i, 0] - self.alpha * loss * x[i]
+                    if x[0, i] != 0:
+                        w[i, 0] = w[i, 0] - self.alpha * loss * x[0, i]
                         for j in range(k):
-                            v[i, j] = v[i, j] - self.alpha * loss * (x[i] * inter_sum[0, j] - v[i,j]*x[i]*x[i])
+                            v[i, j] = v[i, j] - self.alpha * loss * (x[0, i] * inter_sum[0, j] - v[i,j]*x[0, i]*x[0, i])
                 print("w=", w)
         
         self._w_0, self._w, self._v = w_0, w, w
