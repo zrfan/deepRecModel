@@ -32,6 +32,7 @@ class FM(object):
                 trainData = userInfo.tolist() + movieInfo.tolist()
                 x = np.asarray(trainData)[np.newaxis, :]
                 # x = np.asarray(trainData)[:, np.newaxis]
+                print("x shape", x.shape)
                 y = float(row["ratings"])/5
                 # 对应点积的地方通常会有sum，对应位置积的地方通常没有
                 # FM的二阶项：1/2 \sum_{f=1}^k ((\sum_{i=1}^n v_{i,f}x_i)^2 - \sum_{i=1}^n v_{i,f}^2 * x_i^2)
