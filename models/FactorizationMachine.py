@@ -30,8 +30,8 @@ class FM(object):
                 userId, itemId = int(row["userId"]), int(row["movieId"])
                 userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
                 trainData = userInfo.tolist() + movieInfo.tolist()
-                # x = np.mat(trainData)
-                x = np.asarray(trainData)[np.newaxis, :]
+                x = np.mat(trainData)
+                # x = np.asarray(trainData)[np.newaxis, :]
                 # x = np.asarray(trainData)[:, np.newaxis]
                 print("x shape", x.shape)
                 y = float(row["ratings"])/5
