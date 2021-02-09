@@ -24,6 +24,8 @@ class FM(object):
         w = np.zeros((n, 1))  # n是特征的个数
         w_0 = 0
         v = normalvariate(0, 0.2) * np.ones((n, k))
+        print("v=", v)
+        return
         # v = np.random.normal(size=(n, k))
         for it in range(self.iter):
             for idx, row  in rating_info.iterrows():
