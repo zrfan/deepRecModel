@@ -35,6 +35,7 @@ class FM(object):
                 # 对应点积的地方通常会有sum，对应位置积的地方通常没有
                 # FM的二阶项：1/2 \sum_{f=1}^k ((\sum_{i=1}^n v_{i,f}x_i)^2 - \sum_{i=1}^n v_{i,f}^2 * x_i^2)
                 inter_sum = x * v  # xi * vi, xi与vi的矩阵点积  shape=(1, 8)
+                print("v=", v)
                 print("inter_sum=", inter_sum)
                 # xi与xi的对应位置乘积 与 xi^2与vi^2对应位置的乘积的点积，
                 inter_sum_sqr = np.multiply(x, x) * np.multiply(v, v)    # multiply对应元素相乘
