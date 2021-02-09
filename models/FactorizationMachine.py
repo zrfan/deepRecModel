@@ -38,10 +38,10 @@ class FM(object):
                 print("inter_sum=", inter_sum)
                 # xi与xi的对应位置乘积 与 xi^2与vi^2对应位置的乘积的点积，
                 inter_sum_sqr = np.multiply(x, x) * np.multiply(v, v)    # multiply对应元素相乘
-                inter_sum_sqr = inter_sum_sqr.sum(axis=0)    # shape=(1, 8)
+                # inter_sum_sqr = inter_sum_sqr.sum(axis=0)    # shape=(1, 8)
                 print("inter_2=", inter_sum_sqr)
                 # 交叉项 xi*vi*xi*vi - xi^2*vi^2
-                interaction = np.sum(np.multiply(inter_sum, inter_sum) - inter_sum_sqr, axis=0) / 2
+                interaction = np.sum(np.multiply(inter_sum, inter_sum) - inter_sum_sqr) / 2
                 print("interaction=", interaction)
                 # 计算预测的输出
                 p = w_0 + x*w + interaction
