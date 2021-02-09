@@ -30,11 +30,12 @@ class FM(object):
                 userId, itemId = int(row["userId"]), int(row["movieId"])
                 userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
                 trainData = userInfo.tolist() + movieInfo.tolist()
-                x = np.mat(trainData)
+                x = np.asarray(trainData)[np.newaxis, :]
+                # x = np.asarray(trainData)[:, np.newaxis]
                 y = float(row["ratings"])/5
                 # 对应点积的地方通常会有sum，对应位置积的地方通常没有
                 # FM的二阶项：1/2 \sum_{f=1}^k ((\sum_{i=1}^n v_{i,f}x_i)^2 - \sum_{i=1}^n v_{i,f}^2 * x_i^2)
-                inter_sum = x * v  # xi * vi, xi与vi的矩阵点积  shape=(1, 8)
+                inter_sum = np.dot(x, v)   #x * v  # xi * vi, xi与vi的矩阵点积  shape=(1, 8)
                 print("v=", v)
                 print("inter_sum=", inter_sum)
                 # xi与xi的对应位置乘积 与 xi^2与vi^2对应位置的乘积的点积，
