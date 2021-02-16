@@ -9,7 +9,7 @@ import numpy as np
 from .data_util import get1MTrainData
 import tensorflow as tf
 
-
+# https://zhuanlan.zhihu.com/p/145436595
 class FMModelParams(object):
     """ class for initializing weights"""
     def __init__(self, data_path, feature_size, embedding_size=8):
