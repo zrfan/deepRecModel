@@ -142,7 +142,8 @@ class FMModel(object):
         for idx, row in userData.iterrows():
             userIdx.append(idx)
             userInfos.append(row)
-        print(userInfos[:10])
+        print("user len=", len(userIdx))
+        # print(userInfos[:10])
         default_value = tf.constant(np.array([1, 1]), dtype=tf.int64)
         usertable = tf.contrib.lookup.HashTable(
             tf.contrib.lookup.KeyValueTensorInitializer(userIdx, userInfos),
