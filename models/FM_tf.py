@@ -43,7 +43,7 @@ class FMModel(object):
         feature_idx = tf.reshape(feature_idx, shape=[batch_size, tf.shape(feature_idx)[1]])
         labels = tf.reshape(labels, shape=[batch_size, 1])
         feature_values = features["feature_values"]
-        feature_values = tf.reshape(feature_values, shape=[batch_size, tf.shape(feature_idx)[1]])
+        feature_values = tf.reshape(feature_values, shape=[batch_size, tf.shape(feature_idx)[1], 1])
 
         tf_model_params = FMModelParams(self.params)
         weights = tf_model_params.initialize_weights()
