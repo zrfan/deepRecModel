@@ -171,7 +171,7 @@ class FMModel(object):
         # print("data len=", len(data))
 
         def decode(row):
-            userId, itemId, label = tf.cast(row[0], dtype=tf.int32), row[1], row[2]
+            userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), row[2]
             print("######## user_id=\n", userId)
             userInfo = usertable.lookup(userId)
             print("######## user_info=\n", userInfo)
