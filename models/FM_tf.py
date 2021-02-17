@@ -119,7 +119,7 @@ class FMModel(object):
         return dataset
     def train(self):
 
-        session_config = tf.ConfigProto(log_device_placement=True)
+        session_config = tf.ConfigProto(log_device_placement=True, device_count={'GPU': 0})
         session_config.gpu_options.per_process_gpu_memory_fraction = 0.8
         config = tf.estimator.RunConfig(keep_checkpoint_max=5, log_step_count_steps=5000, save_summary_steps=5000,
                                         save_checkpoints_steps=50000).replace(session_config=session_config)
