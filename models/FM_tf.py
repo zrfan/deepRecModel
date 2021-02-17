@@ -39,7 +39,6 @@ class FMModel(object):
         """ build tf model """
         embedding_size, feature_size, field_size = self.params["embedding_size"], self.params["feature_size"], self.params["field_size"]
         batch_size, learning_rate, optimizer_used = self.params["batch_size"], self.params["learning_rate"], self.params["optimizer"]
-        test_feature = features.rename("features_log")
         feature_idx = features["feature_idx"]
         feature_idx = tf.reshape(feature_idx, shape=[batch_size, field_size])
         labels = tf.reshape(labels, shape=[batch_size, 1])
@@ -102,7 +101,11 @@ class FMModel(object):
                 userId, itemId = int(row["userId"]), int(row["movieId"])
                 userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
                 trainData = userInfo.tolist() + movieInfo.tolist()
+                feature_index = list(filter(lambda x: x[0]==1, zip(trainData, list(range(len(trainData))))))
+                feature_index = list(map(lambda x: x[1]))
+                feature_values = [1 for _ in range(len(feature_index))]
                 y = float(row["ratings"]) / 5
+                print("feature_indx", feature_index, "feature_values", feature_values)
                 # print("userinfo=", userInfo)
                 # print("movieinfo=", movieInfo)
                 yield (trainData, y)
