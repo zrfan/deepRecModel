@@ -141,7 +141,8 @@ class FMModel(object):
         userIdx, userInfos = [], []
         for idx, row in userData.iterrows():
             userIdx.append(idx)
-            userInfos.append(','.join(row))
+            val = [str(x) for x in row]
+            userInfos.append(','.join(val))
         print("user len=", len(userIdx))
         # # print(userInfos[:10])
         default_value = tf.constant("0", dtype=tf.int64)
