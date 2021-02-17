@@ -126,7 +126,7 @@ class FMModel(object):
 
         fm_model = tf.estimator.Estimator(model_fn=self.fm_model_fn, model_dir="../data/model/", config=config)
         fm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["first_order", "sigmoid_loss"],
-                                                                                       every_n_iter=10)])
+                                                                                       every_n_iter=500)])
     def test_dataset(self):
         dataset = self.train_input_fn().make_one_shot_iterator()
         next_ele = dataset.get_next()
