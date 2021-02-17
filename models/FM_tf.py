@@ -142,7 +142,7 @@ class FMModel(object):
         for idx, row in userData.iterrows():
             userIdx.append(idx)
             userfeatures = list(filter(lambda x: x[0] == 1, zip(row, list(range(1, len(row) + 1)))))
-            val = [str(x) for x in userfeatures]
+            val = [str(x[1]) for x in userfeatures]
             userInfos.append(','.join(val))
         print("user len=", len(userIdx))
         print(userInfos[:2])
@@ -154,7 +154,7 @@ class FMModel(object):
         for idx, row in itemData.iterrows():
             itemIdx.append(idx)
             itemfeatures = list(filter(lambda x:x[0]==1, zip(row, list(range(len(user_cols), len(row)+len(user_cols))))))
-            itemInfos.append(','.join([str(x) for x in itemfeatures]))
+            itemInfos.append(','.join([str(x[1]) for x in itemfeatures]))
         itemtable = tf.contrib.lookup.HashTable(
             tf.contrib.lookup.KeyValueTensorInitializer(itemIdx, itemInfos),
             default_value)
