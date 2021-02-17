@@ -122,7 +122,7 @@ class FMModel(object):
 
         session_config = tf.ConfigProto(log_device_placement=True, device_count={'GPU': 0})
         session_config.gpu_options.per_process_gpu_memory_fraction = 0.8
-        config = tf.estimator.RunConfig(keep_checkpoint_max=2, log_step_count_steps=500, save_summary_steps=500,
+        config = tf.estimator.RunConfig(keep_checkpoint_max=2, log_step_count_steps=50, save_summary_steps=50,
                                         save_checkpoints_steps=50000).replace(session_config=session_config)
 
         fm_model = tf.estimator.Estimator(model_fn=self.fm_model_fn, model_dir="../data/model/", config=config)
@@ -138,7 +138,7 @@ class FMModel(object):
                 print("value=", value)
                 batch += 1
 def main(_):
-    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 2, "learning_rate":0.001, "optimizer":"adam"}
+    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 16, "learning_rate":0.001, "optimizer":"adam"}
     fm = FMModel(data_path="../data/ml-1m/", params=params)
     # fm.test_dataset()
     fm.train()
