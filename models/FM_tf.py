@@ -12,10 +12,9 @@ import tensorflow as tf
 # https://zhuanlan.zhihu.com/p/145436595
 class FMModelParams(object):
     """ class for initializing weights"""
-    def __init__(self, data_path, feature_size, embedding_size=8):
-        self.data_path, self.embedding_size = data_path, embedding_size
-        self.feature_size = feature_size
-
+    def __init__(self, data_path, params):
+        self.data_path, self.params = data_path, params
+        self.embedding_size, self.feature_size = params["embedding_size"], params["feature_size"]
     def initialize_weights(self):
         """ init fm weights
         returns
