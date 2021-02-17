@@ -138,29 +138,37 @@ class FMModel(object):
     def input_fn_test(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
         self.params["feature_size"] = len(user_cols) + len(movie_cols) - 2
-        userIdx, userInfos = [], []
-        for idx, row in userData.iterrows():
-            userIdx.append(idx)
-            userInfos.append(row)
-        print("user len=", len(userIdx))
-        # print(userInfos[:10])
-        default_value = tf.constant(np.array([1, 1]), dtype=tf.int64)
-        usertable = tf.contrib.lookup.HashTable(
-            tf.contrib.lookup.KeyValueTensorInitializer(userIdx, userInfos),
-            default_value)
-        def decode(row):
-            userId, itemId = row[0], row[1]
+        data = []
+        for _, row in rating_info.iterrows():
+            userId, itemId = row["userId"], row["movieId"]
             userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
             trainData = userInfo.tolist() + movieInfo.tolist()
             feature_index = list(filter(lambda x: x[0] == 1, zip(trainData, list(range(1, len(trainData) + 1)))))
             feature_index = list(map(lambda x: x[1], feature_index))
-            feature_values = [1 for _ in range(len(feature_index))]
+            # userIdx = list(filter(lambda x:x[1]==1, zip(userInfo, list(range(1, len(userInfo)+1)))))
+            # itemIdx = list(filter(lambda x:x[1]==1, zip(movieInfo, list(range(0, len(movieInfo))))))
+            y = float(row["ratings"]) / 5
+            data.append([','.join(feature_index), y])
+        # userIdx, userInfos = [], []
+        # for idx, row in userData.iterrows():
+        #     userIdx.append(idx)
+        #     userInfos.append(row)
+        # print("user len=", len(userIdx))
+        # # print(userInfos[:10])
+        # default_value = tf.constant(np.array([1, 1]), dtype=tf.int64)
+        # usertable = tf.contrib.lookup.HashTable(
+        #     tf.contrib.lookup.KeyValueTensorInitializer(userIdx, userInfos),
+        #     default_value)
+        def decode(row):
+            indx, label = row[0], row[1]
+            feature_index = tf.split(indx, ",")
+            feature_values = tf.constant(1, shape=tf.shape(feature_index))
             y = float(row["ratings"]) / 5
             # print("feature_indx", feature_index, "features len", len(feature_index))
             feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
             return (feature_dict, y)
 
-        dataset = tf.data.Dataset.from_tensor_slices(rating_info).map(decode, num_parallel_calls=2)
+        dataset = tf.data.Dataset.from_tensor_slices(data).map(decode, num_parallel_calls=2)
         dataset = dataset.prefetch(self.params["batch_size"] * 10) \
             .padded_batch(self.params["batch_size"], padded_shapes=({"feature_idx": [None], "feature_values": [None]}, []))
         return dataset
