@@ -164,15 +164,15 @@ class FMModel(object):
         print("data len=", len(data))
 
         def decode(row):
-            indx, label = row[0], row[1]
-            feature_index = tf.split(indx, ",")
+            userId, itemId, label = row[0], row[1], row[2]
+            userInfo = usertable.lookup(userId)
             feature_values = tf.constant(1, shape=tf.shape(feature_index))
             y = float(row["ratings"]) / 5
             # print("feature_indx", feature_index, "features len", len(feature_index))
             feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
             return (feature_dict, y)
 
-        dataset = tf.data.Dataset.from_tensor_slices(data).map(decode, num_parallel_calls=2)
+        dataset = tf.data.Dataset.from_tensor_slices(rating_info).map(decode, num_parallel_calls=2)
         dataset = dataset.prefetch(self.params["batch_size"] * 1) \
             .padded_batch(self.params["batch_size"], padded_shapes=({"feature_idx": [None], "feature_values": [None]}, []))
         return dataset
