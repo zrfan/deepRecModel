@@ -138,6 +138,17 @@ class FMModel(object):
     def input_fn_test(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
         self.params["feature_size"] = len(user_cols) + len(movie_cols) - 2
+        userIdx, userInfos = [], []
+        for idx, row in userData.iterrows():
+            userIdx.append(idx)
+            userInfos.append(','.join(row))
+        print("user len=", len(userIdx))
+        # # print(userInfos[:10])
+        default_value = tf.constant("0", dtype=tf.int64)
+        usertable = tf.contrib.lookup.HashTable(
+            tf.contrib.lookup.KeyValueTensorInitializer(userIdx, userInfos),
+            default_value)
+
         data = []
         for _, row in rating_info.iterrows():
             userId, itemId = row["userId"], row["movieId"]
@@ -150,16 +161,7 @@ class FMModel(object):
             y = float(row["ratings"]) / 5
             data.append([','.join(feature_index), y])
         print("data len=", len(data))
-        # userIdx, userInfos = [], []
-        # for idx, row in userData.iterrows():
-        #     userIdx.append(idx)
-        #     userInfos.append(row)
-        # print("user len=", len(userIdx))
-        # # print(userInfos[:10])
-        # default_value = tf.constant(np.array([1, 1]), dtype=tf.int64)
-        # usertable = tf.contrib.lookup.HashTable(
-        #     tf.contrib.lookup.KeyValueTensorInitializer(userIdx, userInfos),
-        #     default_value)
+
         def decode(row):
             indx, label = row[0], row[1]
             feature_index = tf.split(indx, ",")
