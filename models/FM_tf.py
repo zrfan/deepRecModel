@@ -115,7 +115,7 @@ class FMModel(object):
                                                  ({"feature_idx":tf.TensorShape([None]), "feature_values":tf.TensorShape([None])},
                                                   tf.TensorShape([])))
         dataset = dataset.padded_batch(self.params["batch_size"],
-                                       padded_shapes=({"feature_idx": [None, None], "feature_values": [None, None]}, []))
+                                       padded_shapes=({"feature_idx": [None], "feature_values": [None]}, []))
 
         return dataset
     def train(self):
