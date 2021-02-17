@@ -192,7 +192,7 @@ class FMModel(object):
 
         dataset = tf.data.Dataset.from_tensor_slices(rating_info).map(decode, num_parallel_calls=2)
         dataset = dataset.prefetch(self.params["batch_size"] * 10) \
-            .padded_batch(self.params["batch_size"], padded_shapes=({"feature_idx": [None], "feature_values": [None]}, []))
+            .padded_batch(self.params["batch_size"], padded_shapes=({"feature_idx": [None], "feature_values": [None]}, [])).repeat()
         return dataset
 
     def train(self):
