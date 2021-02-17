@@ -51,7 +51,7 @@ class FMModel(object):
         bias = weights["fm_bias"]
         # build function
         ## first order
-        first_order = tf.multiply(feature_values, weights_first_order)
+        first_order = tf.multiply(feature_values, weights_first_order, name="first_order")
         first_order = tf.reduce_sum(first_order, 2)
         first_order = tf.reduce_sum(first_order, 1, keepdims=True)
 
@@ -117,7 +117,7 @@ class FMModel(object):
         config = tf.estimator.RunConfig(keep_checkpoint_max=5, log_step_count_steps=5000, save_summary_steps=5000,
                                         save_checkpoints_steps=50000).replace(session_config=tf.ConfigProto(device_count={'GPU':0, 'CPU': 2}))
         fm_model = tf.estimator.Estimator(model_fn=self.fm_model_fn, model_dir="../data/model/", config=config)
-        fm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(['features_log'],
+        fm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["first_order"],
                                                                                        every_n_iter=1)])
 def main(_):
     params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 1, "learning_rate":0.001, "optimizer":"adam"}
