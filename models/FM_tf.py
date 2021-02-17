@@ -166,6 +166,7 @@ class FMModel(object):
         def decode(row):
             userId, itemId, label = row[0], row[1], row[2]
             userInfo = usertable.lookup(userId)
+            feature_index = tf.split(userInfo, ",")
             feature_values = tf.constant(1, shape=tf.shape(feature_index))
             y = float(row["ratings"]) / 5
             # print("feature_indx", feature_index, "features len", len(feature_index))
