@@ -173,10 +173,10 @@ class FMModel(object):
                                                 out_type=tf.int32)
             print("#########     feature_index  ######=\n", feature_index)
             feature_values = tf.ones_like(feature_index, dtype=tf.float32)
-            y = float(row["ratings"]) / 5
+            label = tf.div(tf.cast(label, tf.float32), 5)
             # print("feature_indx", feature_index, "features len", len(feature_index))
             feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
-            return (feature_dict, y)
+            return (feature_dict, label)
 
         dataset = tf.data.Dataset.from_tensor_slices(rating_info).map(decode, num_parallel_calls=2)
         dataset = dataset.prefetch(self.params["batch_size"] * 1) \
