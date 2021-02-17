@@ -178,16 +178,16 @@ class FMModel(object):
             userInfo = usertable.lookup(userId)
             print("######## user_info=\n", userInfo)
             itemInfo = itemtable.lookup(itemId)
-            # all_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.string_split([userInfo, itemInfo], ","),
-            #                                                               default_value="0"),
-            #                                                 [-1]),
-            #                                     out_type=tf.int32)
-            # feature_index = all_features
+            all_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.string_split([userInfo, itemInfo], ","),
+                                                                          default_value="0"),
+                                                            [-1]),
+                                                out_type=tf.int32)
+            feature_index = all_features
             # print("#########     feature_index  ######=\n", feature_index)
-            # feature_values = tf.ones_like(feature_index, dtype=tf.float32)
-            # label = tf.div(tf.cast(label, tf.float32), 5)
+            feature_values = tf.ones_like(feature_index, dtype=tf.float32)
+            label = tf.div(tf.cast(label, tf.float32), 5)
             # # print("feature_indx", feature_index, "features len", len(feature_index))
-            feature_dict = {"feature_idx": userInfo, "feature_values": itemInfo}
+            feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
             return (feature_dict, label)
 
         dataset = tf.data.Dataset.from_tensor_slices(rating_info).map(decode, num_parallel_calls=2)
