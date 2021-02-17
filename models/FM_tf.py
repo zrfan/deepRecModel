@@ -144,7 +144,7 @@ class FMModel(object):
             userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
             trainData = userInfo.tolist() + movieInfo.tolist()
             feature_index = list(filter(lambda x: x[0] == 1, zip(trainData, list(range(1, len(trainData) + 1)))))
-            feature_index = list(map(lambda x: x[1], feature_index))
+            feature_index = list(map(lambda x: str(x[1]), feature_index))
             # userIdx = list(filter(lambda x:x[1]==1, zip(userInfo, list(range(1, len(userInfo)+1)))))
             # itemIdx = list(filter(lambda x:x[1]==1, zip(movieInfo, list(range(0, len(movieInfo))))))
             y = float(row["ratings"]) / 5
