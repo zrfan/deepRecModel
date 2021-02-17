@@ -165,11 +165,13 @@ class FMModel(object):
 
         def decode(row):
             userId, itemId, label = tf.cast(row[0], dtype=tf.int32), row[1], row[2]
+            print("######## user_id=\n", userId)
             userInfo = usertable.lookup(userId)
+            print("######## user_info=\n", userInfo)
             feature_index = tf.string_to_number(tf.sparse_tensor_to_dense(tf.string_split([userInfo], ","),
                                                                           default_value="0"),
                                                 out_type=tf.int32)
-            print("#########     feature_index  ######=", feature_index)
+            print("#########     feature_index  ######=\n", feature_index)
             feature_values = tf.constant(1, shape=tf.shape(feature_index))
             y = float(row["ratings"]) / 5
             # print("feature_indx", feature_index, "features len", len(feature_index))
