@@ -196,7 +196,7 @@ class FMModel(object):
                                                                                       every_n_iter=500)])
 
     def test_dataset(self):
-        dataset = self.input_fn_test().make_one_shot_iterator()
+        dataset = self.input_fn_test().make_initializable_iterator()
         next_ele = dataset.get_next()
         batch = 1
         with tf.train.MonitoredTrainingSession() as sess:
