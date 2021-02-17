@@ -109,7 +109,9 @@ class FMModel(object):
                 feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
                 yield (feature_dict, y)
         dataset = tf.data.Dataset.from_generator(gen, ({"feature_idx":tf.int64, "feature_values":tf.int64}, tf.float32),
-                                                 ({"feature_idx":tf.TensorShape([None]), "feature_values":tf.TensorShape([None])}, tf.TensorShape([])))
+                                                 ({"feature_idx":tf.TensorShape([None]), "feature_values":tf.TensorShape([None])},
+                                                  tf.TensorShape([])))
+        dataset = dataset.batch(1)
 
         return dataset
     def train(self):
@@ -119,7 +121,7 @@ class FMModel(object):
         fm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(['features_log'],
                                                                                        every_n_iter=1)])
 def main(_):
-    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 10, "learning_rate":0.001, "optimizer":"adam"}
+    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 1, "learning_rate":0.001, "optimizer":"adam"}
     fm = FMModel(data_path="../data/ml-1m/", params=params)
     dataset = fm.train_input_fn().make_one_shot_iterator()
     next_ele = dataset.get_next()
