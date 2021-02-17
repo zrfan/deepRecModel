@@ -105,14 +105,14 @@ class FMModel(object):
                 trainData = userInfo.tolist() + movieInfo.tolist()
                 y = float(row["ratings"]) / 5
                 yield (trainData, y)
-        # dataset = tf.data.Dataset.from_generator(gen, (tf.int64, tf.float32), (tf.TensorShape([]), tf.TensorShape([None])))
-        dataset = tf.data.Dataset.from_tensor_slices(rating_info[:10])
+        dataset = tf.data.Dataset.from_generator(gen, (tf.int64, tf.float32), (tf.TensorShape([]), tf.TensorShape([None])))
+        # dataset = tf.data.Dataset.from_tensor_slices(rating_info[:10])
         def decode(x):
             userId, itemId, rating = x[0], x[1], x[2]
             userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
             return (userId, itemId, rating)
 
-        dataset = dataset.map(decode, num_parallel_calls=2)
+        # dataset = dataset.map(decode, num_parallel_calls=2)
         # dataset = dataset.map(lambda x: [x[0], x[1], x[2]])
             # .map(lambda userId,movieId,rating: (userData.loc[userId, :].tolist(), movieId, rating))
         return dataset
