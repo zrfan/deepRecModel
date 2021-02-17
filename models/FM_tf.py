@@ -137,7 +137,7 @@ class FMModel(object):
                 print("value=", value)
                 batch += 1
 def main(_):
-    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 2, "learning_rate":0.001, "optimizer":"adam"}
+    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 1, "learning_rate":0.001, "optimizer":"adam"}
     fm = FMModel(data_path="../data/ml-1m/", params=params)
     # fm.test_dataset()
     fm.train()
