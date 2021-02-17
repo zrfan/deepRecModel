@@ -168,7 +168,7 @@ class FMModel(object):
             print("######## user_id=\n", userId)
             userInfo = usertable.lookup(userId)
             print("######## user_info=\n", userInfo)
-            feature_index = tf.string_to_number(tf.sparse.to_dense(tf.string_split(userInfo, ","),
+            feature_index = tf.string_to_number(tf.sparse.to_dense(tf.string_split([userInfo], ","),
                                                                           default_value="0"),
                                                 out_type=tf.int32)
             print("#########     feature_index  ######=\n", feature_index)
