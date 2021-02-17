@@ -34,13 +34,12 @@ class FMModelParams(object):
         return weights
 class FMModel(object):
     """ FM implementation for tensorflow"""
-    def __init__(self, data_path):
-        self.data_path = data_path
-    @staticmethod
-    def fm_model_fn(features, labels, mode, params):
+    def __init__(self, data_path, params):
+        self.data_path, self.params = data_path, params
+    def fm_model_fn(self, features, labels, mode):
         """ build tf model """
-        embedding_size, feature_size, field_size = params["embedding_size"], params["feature_size"], params["field_size"]
-        batch_size, learning_rate, optimizer_used = params["batch_size"], params["learning_rate"], params["optimizer"]
+        embedding_size, feature_size, field_size = self.params["embedding_size"], self.params["feature_size"], self.params["field_size"]
+        batch_size, learning_rate, optimizer_used = self.params["batch_size"], self.params["learning_rate"], self.params["optimizer"]
         feature_idx = features["feature_idx"]
         feature_idx = tf.reshape(feature_idx, shape=[batch_size, field_size])
         labels = tf.reshape(labels, shape=[batch_size, 1])
@@ -97,7 +96,6 @@ class FMModel(object):
     def train_input_fn(self):
         # tf.compat.v1.enable_eager_execution()
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
-        col_len = len(user_cols)+len(movie_cols)-2
         def gen():
             for idx, row in rating_info.iterrows():
                 userId, itemId = int(row["userId"]), int(row["movieId"])
