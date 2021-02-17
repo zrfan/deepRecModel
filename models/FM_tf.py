@@ -150,18 +150,18 @@ class FMModel(object):
             tf.contrib.lookup.KeyValueTensorInitializer(userIdx, userInfos),
             default_value)
 
-        data = []
-        for _, row in rating_info.iterrows():
-            userId, itemId = row["userId"], row["movieId"]
-            userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
-            trainData = userInfo.tolist() + movieInfo.tolist()
-            feature_index = list(filter(lambda x: x[0] == 1, zip(trainData, list(range(1, len(trainData) + 1)))))
-            feature_index = list(map(lambda x: str(x[1]), feature_index))
-            # userIdx = list(filter(lambda x:x[1]==1, zip(userInfo, list(range(1, len(userInfo)+1)))))
-            # itemIdx = list(filter(lambda x:x[1]==1, zip(movieInfo, list(range(0, len(movieInfo))))))
-            y = float(row["ratings"]) / 5
-            data.append([','.join(feature_index), y])
-        print("data len=", len(data))
+        # data = []
+        # for _, row in rating_info.iterrows():
+        #     userId, itemId = row["userId"], row["movieId"]
+        #     userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
+        #     trainData = userInfo.tolist() + movieInfo.tolist()
+        #     feature_index = list(filter(lambda x: x[0] == 1, zip(trainData, list(range(1, len(trainData) + 1)))))
+        #     feature_index = list(map(lambda x: str(x[1]), feature_index))
+        #     # userIdx = list(filter(lambda x:x[1]==1, zip(userInfo, list(range(1, len(userInfo)+1)))))
+        #     # itemIdx = list(filter(lambda x:x[1]==1, zip(movieInfo, list(range(0, len(movieInfo))))))
+        #     y = float(row["ratings"]) / 5
+        #     data.append([','.join(feature_index), y])
+        # print("data len=", len(data))
 
         def decode(row):
             userId, itemId, label = row[0], row[1], row[2]
