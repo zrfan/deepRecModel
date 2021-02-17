@@ -1,9 +1,9 @@
 # deepRecModel
 models for recommendation system
 
-recall model: LR, CF, MF, FM, FFM
+recall model: LR, CF, MF, FM, FFM, 
 
-rank model: deepFM, WDL, DSSM, DIN, DIEN, Transformer, MMoE, ESSM
+rank model: deepFM, WDL, DSSM, DIN, DIEN, Transformer, MMoE, ESSM, AoFFM, xDeepFM
 
 to do list:
 DCN

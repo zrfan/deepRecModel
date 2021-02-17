@@ -1,12 +1,12 @@
 #-*- coding: utf-8 -*
-# tf1.13
+# tf1.14
 from __future__ import division
 from math import exp
 from numpy import *
 from random import normalvariate  # 正态分布
 from sklearn import preprocessing
 import numpy as np
-from .data_util import get1MTrainData
+from data_util import get1MTrainData
 import tensorflow as tf
 
 # https://zhuanlan.zhihu.com/p/145436595
@@ -34,6 +34,8 @@ class FMModelParams(object):
         return weights
 class FMModel(object):
     """ FM implementation for tensorflow"""
+    def __init__(self, data_path):
+        self.data_path = data_path
     @staticmethod
     def fm_model_fn(features, labels, mode, params):
         """ build tf model """
@@ -62,3 +64,76 @@ class FMModel(object):
         ### square(sum(feature * embedding))
         feature_emb_sum = tf.reduce_sum(feature_emb, 1)
         feature_emb_sum_square = tf.square(feature_emb_sum)
+        ### sum(square(feature * embedding))
+        feature_emb_square = tf.square(feature_emb)
+        feature_emb_square_sum = tf.reduce_sum(feature_emb_square, axis=1)
+
+        second_order = feature_emb_sum_square - feature_emb_square_sum
+        second_order = tf.reduce_sum(second_order, axis=1, keep_dims=True)
+
+        ## final objective function
+        logits = second_order + first_order + bias
+        predicts = tf.sigmoid(logits)
+
+        ## loss function
+        sigmoid_loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels)
+        sigmoid_loss = tf.reduce_mean(sigmoid_loss)
+        loss = sigmoid_loss
+
+        # train_op
+        if optimizer_used == 'adagrad':
+            optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate)
+        elif optimizer_used == 'adam':
+            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        else:
+            raise Exception("unknown optimizer", optimizer_used)
+        train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
+
+        # metric
+        eval_metric_ops = {"auc": tf.metrics.auc(labels, predicts)}
+        predictions = {"prob": predicts}
+        return tf.estimator.EstimatorSpec(mode=tf.estimator.ModeKeys.TRAIN, predictions=predicts, loss=loss,
+                                          eval_metric_ops=eval_metric_ops, train_op=train_op)
+    def train_input_fn(self):
+        # tf.compat.v1.enable_eager_execution()
+        userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
+        col_len = len(user_cols)+len(movie_cols)-2
+        def gen():
+            for idx, row in rating_info.iterrows():
+                userId, itemId = int(row["userId"]), int(row["movieId"])
+                userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
+                trainData = userInfo.tolist() + movieInfo.tolist()
+                y = float(row["ratings"]) / 5
+                yield (trainData, y)
+        # dataset = tf.data.Dataset.from_generator(gen, (tf.int64, tf.float32), (tf.TensorShape([]), tf.TensorShape([None])))
+        dataset = tf.data.Dataset.from_tensor_slices(rating_info[:10])
+        def decode(x):
+            userId, itemId, rating = int(x[0]), int(x[1]), x[2]
+            userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
+            return (userId, itemId, rating)
+
+        dataset = dataset.map(decode, num_parallel_calls=2)
+        # dataset = dataset.map(lambda x: [x[0], x[1], x[2]])
+            # .map(lambda userId,movieId,rating: (userData.loc[userId, :].tolist(), movieId, rating))
+        return dataset
+    def train(self):
+        config = tf.estimator.RunConfig(keep_checkpoint_max=5, log_step_count_steps=5000, save_summary_steps=5000,
+                                        save_checkpoints_steps=50000).replace(session_config=tf.ConfigProto(device_count={'GPU':0, 'CPU': 2}))
+        fm_model = tf.estimator.Estimator(model_fn=self.fm_model_fn, model_dir="../data/model/", config=config)
+        fm_model.train(input_fn=self.train_input_fn)
+def main(_):
+    fm = FMModel(data_path="../data/ml-1m/")
+    dataset = fm.train_input_fn().make_one_shot_iterator()
+    next_ele = dataset.get_next()
+    batch = 1
+    with tf.train.MonitoredTrainingSession() as sess:
+        while batch < 15:
+            value = sess.run(next_ele)
+            print("value=", value)
+            batch += 1
+
+if __name__=='__main__':
+    print(tf.__version__)
+    tf.app.run()
+
+
