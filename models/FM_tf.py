@@ -96,6 +96,7 @@ class FMModel(object):
     def train_input_fn(self):
         # tf.compat.v1.enable_eager_execution()
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
+        self.params["feature_size"] = len(user_cols)+len(movie_cols)-2
         def gen():
             for idx, row in rating_info.iterrows():
                 userId, itemId = int(row["userId"]), int(row["movieId"])
@@ -114,7 +115,8 @@ class FMModel(object):
         fm_model = tf.estimator.Estimator(model_fn=self.fm_model_fn, model_dir="../data/model/", config=config)
         fm_model.train(input_fn=self.train_input_fn)
 def main(_):
-    fm = FMModel(data_path="../data/ml-1m/")
+    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 10, "learning_rate":0.001, "optimizer":"adam"}
+    fm = FMModel(data_path="../data/ml-1m/", params=params)
     dataset = fm.train_input_fn().make_one_shot_iterator()
     next_ele = dataset.get_next()
     batch = 1
