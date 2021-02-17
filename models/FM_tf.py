@@ -108,7 +108,8 @@ class FMModel(object):
                 print("feature_indx", feature_index, "features len", len(feature_index))
                 feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
                 yield (feature_dict, y)
-        dataset = tf.data.Dataset.from_generator(gen, (tf.int64, tf.float32), (tf.TensorShape([None]), tf.TensorShape([])))
+        dataset = tf.data.Dataset.from_generator(gen, ({"feature_idx":tf.int64, "feature_values":tf.int64}, tf.float32),
+                                                 ({"feature_idx":tf.TensorShape([None]), "feature_values":tf.TensorShape([None])}, tf.TensorShape([])))
 
         return dataset
     def train(self):
