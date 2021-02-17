@@ -140,7 +140,7 @@ class FMModel(object):
         self.params["feature_size"] = len(user_cols) + len(movie_cols) - 2
 
         def decode(row):
-            userId, itemId = int(row[0]), int(row[1])
+            userId, itemId = row[0], row[1]
             userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
             trainData = userInfo.tolist() + movieInfo.tolist()
             feature_index = list(filter(lambda x: x[0] == 1, zip(trainData, list(range(1, len(trainData) + 1)))))
