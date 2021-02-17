@@ -141,11 +141,11 @@ class FMModel(object):
         userIdx, userInfos = [], []
         for idx, row in userData.iterrows():
             userIdx.append(idx)
-            userfeatures = list(filter(lambda x: x[1] == 1, zip(row, list(range(1, len(row) + 1)))))
+            userfeatures = list(filter(lambda x: x[0] == 1, zip(row, list(range(1, len(row) + 1)))))
             val = [str(x) for x in userfeatures]
             userInfos.append(','.join(val))
         print("user len=", len(userIdx))
-        print(userInfos[:1])
+        print(userInfos[:2])
         default_value = tf.constant("0", dtype=tf.string)
         usertable = tf.contrib.lookup.HashTable(
             tf.contrib.lookup.KeyValueTensorInitializer(userIdx, userInfos),
@@ -153,12 +153,12 @@ class FMModel(object):
         itemIdx, itemInfos = [], []
         for idx, row in itemData.iterrows():
             itemIdx.append(idx)
-            itemfeatures = list(filter(lambda x:x[1]==1, zip(row, list(range(len(user_cols), len(row)+len(user_cols))))))
+            itemfeatures = list(filter(lambda x:x[0]==1, zip(row, list(range(len(user_cols), len(row)+len(user_cols))))))
             itemInfos.append(','.join([str(x) for x in itemfeatures]))
         itemtable = tf.contrib.lookup.HashTable(
             tf.contrib.lookup.KeyValueTensorInitializer(itemIdx, itemInfos),
             default_value)
-        print("item=", itemInfos[:1])
+        print("item=", itemInfos[:2])
         # data = []
         # for _, row in rating_info.iterrows():
         #     userId, itemId = row["userId"], row["movieId"]
