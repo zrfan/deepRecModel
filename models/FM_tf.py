@@ -108,7 +108,7 @@ class FMModel(object):
         # dataset = tf.data.Dataset.from_generator(gen, (tf.int64, tf.float32), (tf.TensorShape([]), tf.TensorShape([None])))
         dataset = tf.data.Dataset.from_tensor_slices(rating_info[:10])
         def decode(x):
-            userId, itemId, rating = int(x[0]), int(x[1]), x[2]
+            userId, itemId, rating = x[0], x[1], x[2]
             userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
             return (userId, itemId, rating)
 
