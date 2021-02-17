@@ -172,7 +172,7 @@ class FMModel(object):
                                                                           default_value="0"),
                                                 out_type=tf.int32)
             print("#########     feature_index  ######=\n", feature_index)
-            feature_values = tf.ones(shape=tf.shape(feature_index), dtype=tf.float32)
+            feature_values = tf.ones_like(feature_index, dtype=tf.float32)
             y = float(row["ratings"]) / 5
             # print("feature_indx", feature_index, "features len", len(feature_index))
             feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
