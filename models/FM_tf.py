@@ -119,7 +119,7 @@ class FMModel(object):
                                         save_checkpoints_steps=50000).replace(session_config=tf.ConfigProto(device_count={'GPU':0, 'CPU': 2}))
         fm_model = tf.estimator.Estimator(model_fn=self.fm_model_fn, model_dir="../data/model/", config=config)
         fm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["first_order"],
-                                                                                       every_n_iter=1)])
+                                                                                       every_n_iter=10)])
 def main(_):
     params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 1, "learning_rate":0.001, "optimizer":"adam"}
     fm = FMModel(data_path="../data/ml-1m/", params=params)
