@@ -164,7 +164,7 @@ class FMModel(object):
         # print("data len=", len(data))
 
         def decode(row):
-            userId, itemId, label = row[0], row[1], row[2]
+            userId, itemId, label = tf.cast(row[0], dtype=tf.int32), row[1], row[2]
             userInfo = usertable.lookup(userId)
             feature_index = tf.split(userInfo, ",")
             feature_values = tf.constant(1, shape=tf.shape(feature_index))
