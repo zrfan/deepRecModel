@@ -104,8 +104,10 @@ class FMModel(object):
                 userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
                 trainData = userInfo.tolist() + movieInfo.tolist()
                 y = float(row["ratings"]) / 5
+                print("userinfo=", userInfo)
                 yield (trainData, y)
         dataset = tf.data.Dataset.from_generator(gen, (tf.int64, tf.float32), (tf.TensorShape([]), tf.TensorShape([None])))
+
         # dataset = tf.data.Dataset.from_tensor_slices(rating_info[:10])
         def decode(x):
             userId, itemId, rating = x[0], x[1], x[2]
