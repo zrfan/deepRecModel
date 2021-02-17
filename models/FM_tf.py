@@ -145,7 +145,7 @@ class FMModel(object):
             val = [str(x) for x in userfeatures]
             userInfos.append(','.join(val))
         print("user len=", len(userIdx))
-        # # print(userInfos[:10])
+        print(userInfos[:1])
         default_value = tf.constant("0", dtype=tf.string)
         usertable = tf.contrib.lookup.HashTable(
             tf.contrib.lookup.KeyValueTensorInitializer(userIdx, userInfos),
@@ -158,7 +158,7 @@ class FMModel(object):
         itemtable = tf.contrib.lookup.HashTable(
             tf.contrib.lookup.KeyValueTensorInitializer(itemIdx, itemInfos),
             default_value)
-
+        print("item=", itemInfos[:1])
         # data = []
         # for _, row in rating_info.iterrows():
         #     userId, itemId = row["userId"], row["movieId"]
