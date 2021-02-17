@@ -149,6 +149,13 @@ class FMModel(object):
         usertable = tf.contrib.lookup.HashTable(
             tf.contrib.lookup.KeyValueTensorInitializer(userIdx, userInfos),
             default_value)
+        itemIdx, itemInfos = [], []
+        for idx, row in itemData.iterrows():
+            itemIdx.append(idx)
+            itemInfos.append(','.join([str(x) for x in row]))
+        itemtable = tf.contrib.lookup.HashTable(
+            tf.contrib.lookup.KeyValueTensorInitializer(itemIdx, itemInfos),
+            default_value)
 
         # data = []
         # for _, row in rating_info.iterrows():
@@ -168,10 +175,12 @@ class FMModel(object):
             print("######## user_id=\n", userId)
             userInfo = usertable.lookup(userId)
             print("######## user_info=\n", userInfo)
-            feature_index = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.string_split([userInfo], ","),
+            itemInfo = itemtable.lookup(itemId)
+            all_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.string_split([userInfo, itemInfo], ","),
                                                                           default_value="0"),
                                                             [-1]),
                                                 out_type=tf.int32)
+            feature_index = all_features
             print("#########     feature_index  ######=\n", feature_index)
             feature_values = tf.ones_like(feature_index, dtype=tf.float32)
             label = tf.div(tf.cast(label, tf.float32), 5)
@@ -211,8 +220,8 @@ def main(_):
     params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 64, "learning_rate": 0.001,
               "optimizer": "adam"}
     fm = FMModel(data_path="../data/ml-1m/", params=params)
-    # fm.test_dataset()
-    fm.train()
+    fm.test_dataset()
+    # fm.train()
 
 
 if __name__ == '__main__':
