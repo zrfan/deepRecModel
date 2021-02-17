@@ -149,6 +149,7 @@ class FMModel(object):
             # itemIdx = list(filter(lambda x:x[1]==1, zip(movieInfo, list(range(0, len(movieInfo))))))
             y = float(row["ratings"]) / 5
             data.append([','.join(feature_index), y])
+        print("data len=", len(data))
         # userIdx, userInfos = [], []
         # for idx, row in userData.iterrows():
         #     userIdx.append(idx)
@@ -169,7 +170,7 @@ class FMModel(object):
             return (feature_dict, y)
 
         dataset = tf.data.Dataset.from_tensor_slices(data).map(decode, num_parallel_calls=2)
-        dataset = dataset.prefetch(self.params["batch_size"] * 10) \
+        dataset = dataset.prefetch(self.params["batch_size"] * 1) \
             .padded_batch(self.params["batch_size"], padded_shapes=({"feature_idx": [None], "feature_values": [None]}, []))
         return dataset
 
@@ -196,7 +197,7 @@ class FMModel(object):
 
 
 def main(_):
-    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 16, "learning_rate": 0.001,
+    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 4, "learning_rate": 0.001,
               "optimizer": "adam"}
     fm = FMModel(data_path="../data/ml-1m/", params=params)
     fm.test_dataset()
