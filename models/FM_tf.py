@@ -107,7 +107,7 @@ class FMModel(object):
                 print("userinfo=", userInfo)
                 print("movieinfo=", movieInfo)
                 yield (trainData, y)
-        dataset = tf.data.Dataset.from_generator(gen, (tf.int64, tf.float32), (tf.TensorShape([]), tf.TensorShape([None])))
+        dataset = tf.data.Dataset.from_generator(gen, (tf.int64, tf.float32), (tf.TensorShape([None]), tf.TensorShape([])))
 
         # dataset = tf.data.Dataset.from_tensor_slices(rating_info[:10])
         def decode(x):
