@@ -104,20 +104,11 @@ class FMModel(object):
                 userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
                 trainData = userInfo.tolist() + movieInfo.tolist()
                 y = float(row["ratings"]) / 5
-                print("userinfo=", userInfo)
-                print("movieinfo=", movieInfo)
+                # print("userinfo=", userInfo)
+                # print("movieinfo=", movieInfo)
                 yield (trainData, y)
         dataset = tf.data.Dataset.from_generator(gen, (tf.int64, tf.float32), (tf.TensorShape([None]), tf.TensorShape([])))
 
-        # dataset = tf.data.Dataset.from_tensor_slices(rating_info[:10])
-        def decode(x):
-            userId, itemId, rating = x[0], x[1], x[2]
-            userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
-            return (userId, itemId, rating)
-
-        # dataset = dataset.map(decode, num_parallel_calls=2)
-        # dataset = dataset.map(lambda x: [x[0], x[1], x[2]])
-            # .map(lambda userId,movieId,rating: (userData.loc[userId, :].tolist(), movieId, rating))
         return dataset
     def train(self):
         config = tf.estimator.RunConfig(keep_checkpoint_max=5, log_step_count_steps=5000, save_summary_steps=5000,
@@ -134,6 +125,7 @@ def main(_):
             value = sess.run(next_ele)
             print("value=", value)
             batch += 1
+    fm.train()
 
 if __name__=='__main__':
     print(tf.__version__)
