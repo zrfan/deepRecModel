@@ -39,6 +39,7 @@ class FMModel(object):
         """ build tf model """
         embedding_size, feature_size, field_size = self.params["embedding_size"], self.params["feature_size"], self.params["field_size"]
         batch_size, learning_rate, optimizer_used = self.params["batch_size"], self.params["learning_rate"], self.params["optimizer"]
+        test_feature = features.rename("features_log")
         feature_idx = features["feature_idx"]
         feature_idx = tf.reshape(feature_idx, shape=[batch_size, field_size])
         labels = tf.reshape(labels, shape=[batch_size, 1])
@@ -112,7 +113,8 @@ class FMModel(object):
         config = tf.estimator.RunConfig(keep_checkpoint_max=5, log_step_count_steps=5000, save_summary_steps=5000,
                                         save_checkpoints_steps=50000).replace(session_config=tf.ConfigProto(device_count={'GPU':0, 'CPU': 2}))
         fm_model = tf.estimator.Estimator(model_fn=self.fm_model_fn, model_dir="../data/model/", config=config)
-        fm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(['features'], every_n_iter=1)])
+        fm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(['features_log'],
+                                                                                       every_n_iter=1)])
 def main(_):
     params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 10, "learning_rate":0.001, "optimizer":"adam"}
     fm = FMModel(data_path="../data/ml-1m/", params=params)
