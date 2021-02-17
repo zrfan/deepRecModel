@@ -12,8 +12,7 @@ import tensorflow as tf
 # https://zhuanlan.zhihu.com/p/145436595
 class FMModelParams(object):
     """ class for initializing weights"""
-    def __init__(self, data_path, params):
-        self.data_path, self.params = data_path, params
+    def __init__(self, params):
         self.embedding_size, self.feature_size = params["embedding_size"], params["feature_size"]
     def initialize_weights(self):
         """ init fm weights
@@ -45,7 +44,7 @@ class FMModel(object):
         feature_values = features["feature_values"]
         feature_values = tf.reshape(feature_values, shape=[batch_size, field_size])
 
-        tf_model_params = FMModelParams(feature_size, embedding_size)
+        tf_model_params = FMModelParams(self.params)
         weights = tf_model_params.initialize_weights()
         embeddings = tf.nn.embedding_lookup(weights["feature_embeddings"], feature_idx)
         weights_first_order = tf.nn.embedding_lookup(weights["weights_first_order"], feature_idx)
