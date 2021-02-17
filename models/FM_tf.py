@@ -28,9 +28,9 @@ class FMModelParams(object):
         weights_initializer = tf.glorot_normal_initializer()
         bias_initializer = tf.constant_initializer(0.0)
         weights["feature_embeddings"] = tf.get_variable(name="weights", dtype=tf.float32, initializer=weights_initializer,
-                                                        shape=[self.feature_size, self.embedding_size])
+                                                        shape=[self.feature_size+1, self.embedding_size])
         weights["weights_first_order"] = tf.get_variable(name="vector", dtype=tf.float32, initializer=weights_initializer,
-                                                         shape=[self.feature_size, 1])
+                                                         shape=[self.feature_size+1, 1])
         weights["fm_bias"] = tf.get_variable(name="bias", dtype=tf.float32, initializer=bias_initializer, shape=[1])
         return weights
 class FMModel(object):
@@ -104,7 +104,7 @@ class FMModel(object):
                 userId, itemId = int(row["userId"]), int(row["movieId"])
                 userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
                 trainData = userInfo.tolist() + movieInfo.tolist()
-                feature_index = list(filter(lambda x: x[0]==1, zip(trainData, list(range(len(trainData))))))
+                feature_index = list(filter(lambda x: x[0]==1, zip(trainData, list(range(1, len(trainData)+1)))))
                 feature_index = list(map(lambda x: x[1], feature_index))
                 feature_values = [1 for _ in range(len(feature_index))]
                 y = float(row["ratings"]) / 5
@@ -114,7 +114,8 @@ class FMModel(object):
         dataset = tf.data.Dataset.from_generator(gen, ({"feature_idx":tf.int64, "feature_values":tf.float32}, tf.float32),
                                                  ({"feature_idx":tf.TensorShape([None]), "feature_values":tf.TensorShape([None])},
                                                   tf.TensorShape([])))
-        dataset = dataset.batch(self.params["batch_size"])
+        dataset = dataset.padded_batch(self.params["batch_size"],
+                                       padded_shapes=({"feature_idx": [None, None], "feature_values": [None, None]}, []))
 
         return dataset
     def train(self):
