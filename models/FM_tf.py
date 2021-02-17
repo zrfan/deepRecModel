@@ -114,8 +114,8 @@ class FMModel(object):
         dataset = tf.data.Dataset.from_generator(gen, ({"feature_idx":tf.int64, "feature_values":tf.float32}, tf.float32),
                                                  ({"feature_idx":tf.TensorShape([None]), "feature_values":tf.TensorShape([None])},
                                                   tf.TensorShape([])))
-        dataset = dataset.padded_batch(self.params["batch_size"],
-                                       padded_shapes=({"feature_idx": [None], "feature_values": [None]}, [])).prefetch(10)
+        dataset = dataset.prefetch(128).padded_batch(self.params["batch_size"],
+                                       padded_shapes=({"feature_idx": [None], "feature_values": [None]}, []))
 
         return dataset
     def train(self):
