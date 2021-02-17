@@ -8,6 +8,9 @@ from sklearn import preprocessing
 import numpy as np
 from data_util import get1MTrainData
 import tensorflow as tf
+import os
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
 
 # https://zhuanlan.zhihu.com/p/145436595
 class FMModelParams(object):
@@ -115,8 +118,12 @@ class FMModel(object):
 
         return dataset
     def train(self):
+
+        session_config = tf.ConfigProto(log_device_placement=True)
+        session_config.gpu_options.per_process_gpu_memory_fraction = 0.5
         config = tf.estimator.RunConfig(keep_checkpoint_max=5, log_step_count_steps=5000, save_summary_steps=5000,
-                                        save_checkpoints_steps=50000).replace(session_config=tf.ConfigProto(device_count={'GPU':0, 'CPU': 2}))
+                                        save_checkpoints_steps=50000).replace(session_config=session_config)
+
         fm_model = tf.estimator.Estimator(model_fn=self.fm_model_fn, model_dir="../data/model/", config=config)
         fm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["first_order"],
                                                                                        every_n_iter=10)])
