@@ -105,6 +105,7 @@ class FMModel(object):
                 trainData = userInfo.tolist() + movieInfo.tolist()
                 y = float(row["ratings"]) / 5
                 print("userinfo=", userInfo)
+                print("movieinfo=", movieInfo)
                 yield (trainData, y)
         dataset = tf.data.Dataset.from_generator(gen, (tf.int64, tf.float32), (tf.TensorShape([]), tf.TensorShape([None])))
 
