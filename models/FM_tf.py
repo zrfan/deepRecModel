@@ -39,11 +39,11 @@ class FMModel(object):
         embedding_size, feature_size, field_size = self.params["embedding_size"], self.params["feature_size"], self.params["field_size"]
         batch_size, learning_rate, optimizer_used = self.params["batch_size"], self.params["learning_rate"], self.params["optimizer"]
         feature_idx = features["feature_idx"]
-        print("feature:", features)
+        print("feature  :   ########################3\n", features)
         feature_idx = tf.reshape(feature_idx, shape=[batch_size, tf.shape(feature_idx)[1]])
         labels = tf.reshape(labels, shape=[batch_size, 1])
         feature_values = features["feature_values"]
-        feature_values = tf.reshape(feature_values, shape=[batch_size, field_size])
+        feature_values = tf.reshape(feature_values, shape=[batch_size, tf.shape(feature_idx)[1]])
 
         tf_model_params = FMModelParams(self.params)
         weights = tf_model_params.initialize_weights()
