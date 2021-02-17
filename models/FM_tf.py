@@ -208,7 +208,7 @@ class FMModel(object):
 
 
 def main(_):
-    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 16, "learning_rate": 0.001,
+    params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 64, "learning_rate": 0.001,
               "optimizer": "adam"}
     fm = FMModel(data_path="../data/ml-1m/", params=params)
     # fm.test_dataset()
