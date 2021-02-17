@@ -200,6 +200,7 @@ class FMModel(object):
         next_ele = dataset.get_next()
         batch = 1
         with tf.train.MonitoredTrainingSession() as sess:
+            sess.run(dataset.initializer)
             while batch < 15:
                 value = sess.run(next_ele)
                 print("value=", value)
