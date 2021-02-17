@@ -78,7 +78,7 @@ class FMModel(object):
 
         ## loss function
         sigmoid_loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels)
-        sigmoid_loss = tf.reduce_mean(sigmoid_loss)
+        sigmoid_loss = tf.reduce_mean(sigmoid_loss, name="sigmoid_loss")
         loss = sigmoid_loss
 
         # train_op
@@ -120,24 +120,26 @@ class FMModel(object):
     def train(self):
 
         session_config = tf.ConfigProto(log_device_placement=True)
-        session_config.gpu_options.per_process_gpu_memory_fraction = 0.5
+        session_config.gpu_options.per_process_gpu_memory_fraction = 0.8
         config = tf.estimator.RunConfig(keep_checkpoint_max=5, log_step_count_steps=5000, save_summary_steps=5000,
                                         save_checkpoints_steps=50000).replace(session_config=session_config)
 
         fm_model = tf.estimator.Estimator(model_fn=self.fm_model_fn, model_dir="../data/model/", config=config)
-        fm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["first_order"],
+        fm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["first_order", "sigmoid_loss"],
                                                                                        every_n_iter=10)])
+    def test_dataset(self):
+        dataset = self.train_input_fn().make_one_shot_iterator()
+        next_ele = dataset.get_next()
+        batch = 1
+        with tf.train.MonitoredTrainingSession() as sess:
+            while batch < 15:
+                value = sess.run(next_ele)
+                print("value=", value)
+                batch += 1
 def main(_):
     params = {"embedding_size": 8, "feature_size": 0, "field_size": 1, "batch_size": 1, "learning_rate":0.001, "optimizer":"adam"}
     fm = FMModel(data_path="../data/ml-1m/", params=params)
-    dataset = fm.train_input_fn().make_one_shot_iterator()
-    next_ele = dataset.get_next()
-    batch = 1
-    with tf.train.MonitoredTrainingSession() as sess:
-        while batch < 15:
-            value = sess.run(next_ele)
-            print("value=", value)
-            batch += 1
+    # fm.test_dataset()
     fm.train()
 
 if __name__=='__main__':
