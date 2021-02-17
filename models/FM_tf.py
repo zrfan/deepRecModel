@@ -138,7 +138,15 @@ class FMModel(object):
     def input_fn_test(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
         self.params["feature_size"] = len(user_cols) + len(movie_cols) - 2
-
+        userIdx, userInfos = [], []
+        for idx, row in userData.iterrows():
+            userIdx.append(idx)
+            userInfos.append(row)
+        print(userInfos[:10])
+        default_value = tf.constant(np.array([1, 1]), dtype=tf.int64)
+        usertable = tf.contrib.lookup.HashTable(
+            tf.contrib.lookup.KeyValueTensorInitializer(userIdx, userInfos),
+            default_value)
         def decode(row):
             userId, itemId = row[0], row[1]
             userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
