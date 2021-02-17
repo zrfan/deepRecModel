@@ -105,7 +105,7 @@ class FMModel(object):
                 feature_index = list(map(lambda x: x[1], feature_index))
                 feature_values = [1 for _ in range(len(feature_index))]
                 y = float(row["ratings"]) / 5
-                print("feature_indx", feature_index, "features len", len(feature_index))
+                # print("feature_indx", feature_index, "features len", len(feature_index))
                 feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
                 yield (feature_dict, y)
         dataset = tf.data.Dataset.from_generator(gen, ({"feature_idx":tf.int64, "feature_values":tf.float32}, tf.float32),
