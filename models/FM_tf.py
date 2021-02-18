@@ -13,7 +13,6 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
 
 
-# https://zhuanlan.zhihu.com/p/145436595
 class FMModelParams(object):
     """ class for initializing weights"""
 
