@@ -136,11 +136,11 @@ class FMModel(object):
 
     def input_fn_test(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
-        self.params["feature_size"] = len(user_cols) + len(movie_cols) - 2
+        self.params["feature_size"] = len(user_cols) + len(movie_cols)
         userIdx, userInfos = [], []
         for idx, row in userData.iterrows():
             userIdx.append(idx)
-            userfeatures = list(filter(lambda x: x[0] == 1, zip(row, list(range(1, len(row) + 1)))))
+            userfeatures = list(filter(lambda x: x[0] == 1, zip(row, list(range(1, len(user_cols) + 1)))))
             val = [str(x[1]) for x in userfeatures]
             userInfos.append(','.join(val))
         print("user len=", len(userIdx))
@@ -152,7 +152,7 @@ class FMModel(object):
         itemIdx, itemInfos = [], []
         for idx, row in itemData.iterrows():
             itemIdx.append(idx)
-            itemfeatures = list(filter(lambda x:x[0]==1, zip(row, list(range(len(user_cols), len(row)+len(user_cols))))))
+            itemfeatures = list(filter(lambda x:x[0]==1, zip(row, list(range(len(user_cols)+1, len(row)+len(user_cols))))))
             itemInfos.append(','.join([str(x[1]) for x in itemfeatures]))
         itemtable = tf.contrib.lookup.HashTable(
             tf.contrib.lookup.KeyValueTensorInitializer(itemIdx, itemInfos),

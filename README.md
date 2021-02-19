@@ -1,4 +1,6 @@
 # deepRecModel
+## require
+- tf.version=1.14
 ## python Lib
 models for recommendation system
 

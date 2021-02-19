@@ -4,6 +4,7 @@ import pandas
 import tensorflow as tf
 import os
 import numpy
+from data_util import get1MTrainData
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
 
@@ -88,6 +89,70 @@ class FFMModel(object):
         predictions = {"prob": predicts}
         return tf.estimator.EstimatorSpec(mode=tf.estimator.ModeKeys.TRAIN, predictions=predicts, loss=loss,
                                           eval_metric_ops=eval_metric_ops, train_op=train_op)
+    def train_input_fn(self):
+        userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
+        feature_dict = {"age": 0, "gender": 1, "occupation": 2, "genres": 3, "year": 4}
+        self.params["feature_size"] = len(user_cols) + len(movie_cols) - 2
+        self.params["field_size"] = len(feature_dict.keys())
+        featureIdx, fieldIdx = [], []
+        for col, idx in zip(user_cols+movie_cols, list(range(1, len(user_cols+movie_cols)+1))):
+            featureIdx.append(idx)
+            fieldIdx.append(feature_dict[col.split("_")[0]])
+        fieldTable = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(featureIdx, fieldIdx),
+                                                 tf.constant(0, dtype=tf.int32))
+        def getTable(data, start_idx):
+            idx, infos = [], []
+            for idx, row in data.iterrows():
+                idx.append(idx)
+                features = list(filter(lambda x: x[0]==1, zip(row, list(range(start_idx, len(row)+1)))))
+                val = [str(x[1]) for x in features]
+                infos.append(','.join(val))
+            print("data len=", len(idx))
+            default_value = tf.constant("0", dtype=tf.string)
+            table = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(idx, infos), default_value)
+            return table
+        userTable = getTable(userData, start_idx=1)
+        itemTable = getTable(itemData, start_idx=len(user_cols)+1)
+        def decode(row):
+            userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), row[2]
+            userInfo, itemInfo = userTable.lookup(userId), itemTable.lookup(itemId)
+            all_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.strings.split([userInfo, itemInfo], ","),
+                                                                              default_value="0"),
+                                                           [-1]),
+                                                out_type=tf.int32)
+            feature_idx = all_features
+            feature_fields = fieldTable.lookup(feature_idx)
+            feature_values = tf.ones_like(feature_idx, dtype=tf.float32)
+            label = tf.divide(tf.cast(label, tf.float32), 5)
+            feature_dict = {"feature_idx": feature_idx, "feature_values": feature_values, "feature_fields": feature_fields}
+            return (feature_dict, label)
+        dataset = tf.data.Dataset.from_tensor_slices(rating_info).map(decode, num_parallel_calls=2)
+        dataset = dataset.repeat(self.params["epochs"])
+        dataset = dataset.prefetch(self.params["batch_size"]*10)\
+            .padded_batch(self.params["batch_size"],
+                          padded_shapes=({"feature_idx": [None], "feature_values": [None], "feature_fields": [None]}, []))
+        return dataset
+    def test_dataset(self):
+        dataset = self.train_input_fn().make_initializable_iterator()
+        next_ele = dataset.get_next()
+        batch = 1
+        with tf.train.MonitoredTrainingSession() as sess:
+            sess.run(dataset.initializer)
+            while batch < 15:
+                value = sess.run(next_ele)
+                print("value=", value)
+                batch += 1
 
+def main(_):
+    params = {"embedding_size": 2, "feature_size": 0, "field_size": 0, "batch_size": 1, "learning_rate": 0.001,"epochs":200,
+              "optimizer": "adam"}
+    fm = FFMModel(data_path="../data/ml-1m/", params=params)
+    fm.test_dataset()
+    # fm.train()
+
+
+if __name__ == '__main__':
+    print(tf.__version__)
+    tf.app.run()
 
 

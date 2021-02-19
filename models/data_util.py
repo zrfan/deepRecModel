@@ -54,16 +54,20 @@ def get1MTrainData(path):
     zipcodeList = list(set(user_info["zipcode"].tolist()))
     print("zipcodeList=", zipcodeList)
     print("zipcode len=", len(zipcodeList))
-    user_cols = ["gender_"+str(x) for x in genderList] + ["age_"+str(x) for x in ageList] + ["occ_"+str(x) for x in occupationList] + ["userId"]
+    user_cols = ["gender_"+str(x) for x in genderList] + ["age_"+str(x) for x in ageList] + ["occ_"+str(x) for x in occupationList]
     genderInfo = pd.get_dummies(user_info["gender"], sparse=True)
     ageInfo = pd.get_dummies(user_info["age"], sparse=True)
     occInfo = pd.get_dummies(user_info["occupation"], sparse=True)
     occInfo.columns =["occ_"+str(x) for x in occupationList]
     ageInfo.columns = ["age_"+str(x) for x in ageList]
     genderInfo.columns = ["gender_"+x for x in genderList]
-    user_info = user_info.join(genderInfo).join(ageInfo).join(occInfo)[user_cols]
+    user_info = user_info.join(genderInfo).join(ageInfo).join(occInfo)[user_cols+["userId"]]
     user_info = user_info.set_index("userId")
-    # print(user_info.head(10))
+    take1 = user_info.head(1)
+    print("user columns=", user_info.columns)
+    print("take1 user info= ")
+    for x in take1:
+        print(" ", x)
 
     movie_info = pd.read_csv(path+"/movies.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["movieId", "title", "genres"])
     movie_info["year"] = movie_info["title"].apply(lambda x: getYear(x))
@@ -72,20 +76,22 @@ def get1MTrainData(path):
     
     yearInfo = pd.get_dummies(movie_info["year"], sparse=True)
     yearInfo.columns = ["year_"+str(x) for x in yearInfo.columns ]
-    # print(yearInfo.head(10))
     movie_info = movie_info.join(yearInfo)
-    # print(movie_info.head(10))
-    
+
     for g in genresList:
         movie_info["genres_"+g] = 0
     for idx, row in movie_info.iterrows():
         gList = row["genres"].split("|")
         for g in gList:
             movie_info.loc[idx, "genres_"+g] = 1
-    movie_cols = ["genres_" + x for x in genresList] + ["year_" + str(x) for x in yearList] + ["movieId"]
-    movie_info = movie_info[movie_cols]
-    # print(movie_info.head(10))
+    movie_cols = ["genres_" + x for x in genresList] + ["year_" + str(x) for x in yearList]
+    movie_info = movie_info[movie_cols+["movieId"]]
     movie_info = movie_info.set_index("movieId")
+    take1 = movie_info.head(1)
+    print("movie columns=", movie_info.columns)
+    print("\ntake1 movie info= ")
+    for x in take1:
+        print(" ", x)
 
     rating_info = pd.read_csv(path+"/ratings.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
     
@@ -94,5 +100,8 @@ def get1MTrainData(path):
 def get1MTrainDataWithNeg(path):
     user_info, movie_info, rating_info, user_cols, movie_cols = get1MTrainData(path)
 
-if __name__=="__main__":
+def main():
     get1MTrainData("../data/ml-1m/")
+
+if __name__=="__main__":
+    main()
