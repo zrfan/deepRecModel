@@ -88,7 +88,7 @@ class FFMModel(object):
                                           eval_metric_ops=eval_metric_ops, train_op=train_op)
     def train_input_fn(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
-        feature_dict = {"age": 0, "gender": 1, "occupation": 2, "genres": 3, "year": 4}
+        feature_dict = {"gender": 0, "age": 1, "occupation": 2, "genres": 3, "year": 4}
         self.params["feature_size"] = len(user_cols) + len(movie_cols) - 2
         self.params["field_size"] = len(feature_dict.keys())
         featureIdx, fieldIdx = [], []
@@ -98,36 +98,42 @@ class FFMModel(object):
         fieldTable = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(featureIdx, fieldIdx),
                                                  tf.constant(0, dtype=tf.int32))
         def getTable(data, start_idx):
-            idx, infos = [], []
+            all_idx, infos = [], []
             for idx, row in data.iterrows():
-                idx.append(idx)
+                all_idx.append(idx)
                 features = list(filter(lambda x: x[0]==1, zip(row, list(range(start_idx, len(row)+1)))))
                 val = [str(x[1]) for x in features]
                 infos.append(','.join(val))
-            print("data len=", len(idx))
+            print("data len=", len(all_idx))
             default_value = tf.constant("0", dtype=tf.string)
-            table = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(idx, infos), default_value)
+            table = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(all_idx, infos), default_value)
             return table
         userTable = getTable(userData, start_idx=1)
         itemTable = getTable(itemData, start_idx=len(user_cols)+1)
         def decode(row):
             userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), row[2]
             userInfo, itemInfo = userTable.lookup(userId), itemTable.lookup(itemId)
-            all_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.strings.split([userInfo, itemInfo], ","),
-                                                                              default_value="0"),
-                                                           [-1]),
-                                                out_type=tf.int32)
+            user_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.strings.split([userInfo], ","),
+                                                                               default_value="0"), [-1]),
+                                                 out_type=tf.int32)
+            item_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.strings.split([itemInfo], ","),
+                                                                    default_value="0"), [-1]),
+                                                 out_type=tf.int32)
+            all_features = tf.concat([user_features, item_features], axis=0)
             feature_idx = all_features
             feature_fields = fieldTable.lookup(feature_idx)
             feature_values = tf.ones_like(feature_idx, dtype=tf.float32)
             label = tf.divide(tf.cast(label, tf.float32), 5)
-            feature_dict = {"feature_idx": feature_idx, "feature_values": feature_values, "feature_fields": feature_fields}
+            feature_dict = {"feature_idx": feature_idx, "feature_values": feature_values, "feature_fields": feature_fields,
+                            "user_info": userInfo, "item_info": itemInfo, "user_features": user_features, "item_features": item_features}
             return (feature_dict, label)
         dataset = tf.data.Dataset.from_tensor_slices(rating_info).map(decode, num_parallel_calls=2)
         dataset = dataset.repeat(self.params["epochs"])
         dataset = dataset.prefetch(self.params["batch_size"]*10)\
             .padded_batch(self.params["batch_size"],
-                          padded_shapes=({"feature_idx": [None], "feature_values": [None], "feature_fields": [None]}, []))
+                          padded_shapes=({"feature_idx": [None], "feature_values": [None], "feature_fields": [None],
+                                          "user_info":[], "item_info":[], "user_features":[None], "item_features":[None]},
+                                         []))
         return dataset
     def test_dataset(self):
         dataset = self.train_input_fn().make_initializable_iterator()
@@ -135,7 +141,7 @@ class FFMModel(object):
         batch = 1
         with tf.train.MonitoredTrainingSession() as sess:
             sess.run(dataset.initializer)
-            while batch < 15:
+            while batch < 2:
                 value = sess.run(next_ele)
                 print("value=", value)
                 batch += 1

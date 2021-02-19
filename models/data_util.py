@@ -52,22 +52,23 @@ def get1MTrainData(path):
     ageList = [1, 18, 25, 35, 45, 50, 56]
     occupationList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     zipcodeList = list(set(user_info["zipcode"].tolist()))
-    print("zipcodeList=", zipcodeList)
+    # print("zipcodeList=", zipcodeList)
     print("zipcode len=", len(zipcodeList))
-    user_cols = ["gender_"+str(x) for x in genderList] + ["age_"+str(x) for x in ageList] + ["occ_"+str(x) for x in occupationList]
+    user_cols = ["gender_"+str(x) for x in genderList] + ["age_"+str(x) for x in ageList] + ["occupation_"+str(x) for x in occupationList]
     genderInfo = pd.get_dummies(user_info["gender"], sparse=True)
     ageInfo = pd.get_dummies(user_info["age"], sparse=True)
     occInfo = pd.get_dummies(user_info["occupation"], sparse=True)
-    occInfo.columns =["occ_"+str(x) for x in occupationList]
+    occInfo.columns =["occupation_"+str(x) for x in occupationList]
     ageInfo.columns = ["age_"+str(x) for x in ageList]
     genderInfo.columns = ["gender_"+x for x in genderList]
     user_info = user_info.join(genderInfo).join(ageInfo).join(occInfo)[user_cols+["userId"]]
     user_info = user_info.set_index("userId")
     take1 = user_info.head(1)
-    print("user columns=", user_info.columns)
+    print("user columns len=", len(user_cols), user_info.columns)
     print("take1 user info= ")
+    print(take1)
     for x in take1:
-        print(" ", x)
+        print(x, " ", take1[x])
 
     movie_info = pd.read_csv(path+"/movies.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["movieId", "title", "genres"])
     movie_info["year"] = movie_info["title"].apply(lambda x: getYear(x))
@@ -88,10 +89,10 @@ def get1MTrainData(path):
     movie_info = movie_info[movie_cols+["movieId"]]
     movie_info = movie_info.set_index("movieId")
     take1 = movie_info.head(1)
-    print("movie columns=", movie_info.columns)
+    print("movie columns len=", len(movie_cols), movie_info.columns)
     print("\ntake1 movie info= ")
-    for x in take1:
-        print(" ", x)
+    # for x in take1:
+    #     print(" ", x)
 
     rating_info = pd.read_csv(path+"/ratings.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
     
