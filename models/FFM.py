@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*
 # tf1.14
-import pandas
 import tensorflow as tf
 import os
-import numpy
 from data_util import get1MTrainData
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
@@ -30,7 +28,6 @@ class FFMModel(object):
     def __init__(self, data_path, params):
         self.data_path, self.params = data_path, params
     def ffm_model_fn(self, features, labels, mode):
-        embedding_size, feature_size, field_size = self.params["embedding_size"], self.params["feature_size"], self.params["field_size"]
         batch_size, learning_rate, optimizer_used = self.params["batch_size"], self.params["learning_rate"], self.params["optimizer"]
         feature_idx = features["feature_idx"]
         feature_idx = tf.reshape(feature_idx, shape=[batch_size, tf.shape(feature_idx)[1]])
