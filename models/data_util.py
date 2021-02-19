@@ -47,9 +47,13 @@ def getTrainData(path):
 def get1MTrainData(path):
     user_info = pd.read_csv(path+"/users.dat", header=None, encoding='utf-8', delimiter="::", quoting=csv.QUOTE_NONE,
                             names=["userId", "gender", "age", "occupation", "zipcode"])
+    print(user_info.shape)
     genderList = ["F", "M"]
     ageList = [1, 18, 25, 35, 45, 50, 56]
     occupationList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    zipcodeList = list(set(user_info["zipcode"].tolist()))
+    print("zipcodeList=", zipcodeList)
+    print("zipcode len=", len(zipcodeList))
     user_cols = ["gender_"+str(x) for x in genderList] + ["age_"+str(x) for x in ageList] + ["occ_"+str(x) for x in occupationList] + ["userId"]
     genderInfo = pd.get_dummies(user_info["gender"], sparse=True)
     ageInfo = pd.get_dummies(user_info["age"], sparse=True)
@@ -89,4 +93,6 @@ def get1MTrainData(path):
 
 def get1MTrainDataWithNeg(path):
     user_info, movie_info, rating_info, user_cols, movie_cols = get1MTrainData(path)
-    
+
+if __name__=="__main__":
+    get1MTrainData("../data/ml-1m/")

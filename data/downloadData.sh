@@ -7,6 +7,10 @@ wget http://files.grouplens.org/datasets/movielens/ml-1m.zip
 python data_process.py
 python 1m_data_process.py
 
+# criteo数据集
+wget --no-check-certificate https://s3-eu-west-1.amazonaws.com/criteo-labs/dac.tar.gz
+
+
 
 # ESSM public dataset, Alibaba click and conversion prediction
 # https://tianchi.aliyun.com/dataset/dataDetail?dataId=408&userId=1
