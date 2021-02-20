@@ -63,19 +63,21 @@ def get1MTrainData(path):
     genderInfo.columns = ["gender_"+x for x in genderList]
     user_info = user_info.join(genderInfo).join(ageInfo).join(occInfo)[user_cols+["userId"]]
     user_info = user_info.set_index("userId")
-    take1 = user_info.head(1)
+    # take1 = user_info.head(1)
     print("user columns len=", len(user_cols), user_info.columns)
     print("take1 user info= ")
-    print(take1)
-    for x in take1:
-        print(x, " ", take1[x])
+    # print(take1)
+    # for x in take1:
+    #     print(x, " ", take1[x])
 
     movie_info = pd.read_csv(path+"/movies.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["movieId", "title", "genres"])
     movie_info["year"] = movie_info["title"].apply(lambda x: getYear(x))
-    genresList = pd.read_csv(path + "/../all_genres.csv", sep=",", names=["genres"])["genres"].tolist()
-    yearList = movie_info["year"].tolist()
+    genresList = list(set(pd.read_csv(path + "/../all_genres.csv", sep=",", names=["genres"])["genres"].tolist()))
+    yearList = list(set(movie_info["year"].tolist()))
+    print("genres len=", len(genresList), " years len=", len(yearList))
     
     yearInfo = pd.get_dummies(movie_info["year"], sparse=True)
+    print(yearInfo.head(1))
     yearInfo.columns = ["year_"+str(x) for x in yearInfo.columns ]
     movie_info = movie_info.join(yearInfo)
 
@@ -90,9 +92,9 @@ def get1MTrainData(path):
     movie_info = movie_info.set_index("movieId")
     take1 = movie_info.head(1)
     print("movie columns len=", len(movie_cols), movie_info.columns)
-    print("\ntake1 movie info= ")
-    # for x in take1:
-    #     print(" ", x)
+    print("take1 movie info= ")
+    for x in take1:
+        print(" ", x)
 
     rating_info = pd.read_csv(path+"/ratings.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
     
