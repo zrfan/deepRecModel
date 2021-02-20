@@ -106,8 +106,8 @@ def splitTrainAndTestRating(path):
     size = int(rating_info.shape[0]*0.9)
     train_rating = rating_info[:size]
     test_rating = rating_info[size:]
-    train_rating.to_csv(path+"/train_rating.dat", index=False, header=None, sep="::", quoting=csv.QUOTE_NONE)
-    test_rating.to_csv(path+"/test_rating.dat", index=False, header=None, sep="::", quoting=csv.QUOTE_NONE)
+    train_rating.to_csv(path+"/train_rating.dat", index=False, header=None, sep=",", quoting=csv.QUOTE_NONE)
+    test_rating.to_csv(path+"/test_rating.dat", index=False, header=None, sep=",", quoting=csv.QUOTE_NONE)
 
 def get1MTrainDataWithNeg(path):
     user_info, movie_info, rating_info, user_cols, movie_cols = get1MTrainData(path)
