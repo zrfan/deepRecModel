@@ -96,13 +96,14 @@ def get1MTrainData(path):
     for x in take1:
         print(" ", x)
 
-    rating_info = pd.read_csv(path+"/ratings.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
+    rating_info = pd.read_csv(path+"/train_rating.dat", header=None, delimiter=",", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
     
     return user_info, movie_info, rating_info, user_cols, movie_cols
 
 def splitTrainAndTestRating(path):
     rating_info = pd.read_csv(path+"/ratings.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
-    rating_info.sort_values(by="timestamp", ascending=True)
+    rating_info = rating_info.sort_values(by="timestamp", ascending=True)
+
     size = int(rating_info.shape[0]*0.9)
     train_rating = rating_info[:size]
     test_rating = rating_info[size:]
