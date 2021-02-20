@@ -54,18 +54,19 @@ class FFMModel(object):
         second_order = tf.constant(0, dtype=tf.float32)
         input_number = feature_idx.get_shape().as_list()[1]
         print("input_number=", input_number)
-        for i in range(feature_size):
-            for j in range(i+1, feature_size):
-                idx_i, idx_j = feature_idx[:, i], feature_idx[:, j]
+        for i in range(1, feature_size+1):
+            for j in range(i+1, feature_size+1):
+                # idx_i, idx_j = feature_idx[:, i], feature_idx[:, j]
                 # field_i, field_j = feature_fields[:, i], feature_fields[:, j]
-                field_i, field_j = self.field_dict[j], self.field_dict[i]
-                emb_i, emb_j = all_embedding[idx_i, field_j, :], all_embedding[idx_j, field_i, :]
+
+                field_i, field_j = self.field_dict[i], self.field_dict[j]
+                emb_i, emb_j = all_embedding[i, field_j, :], all_embedding[j, field_i, :]
                 val_i, val_j = feature_values[:, i, :], feature_values[:, j, :]
 
                 field_emb_sum = tf.multiply(emb_i, emb_j)
                 val_sum = tf.multiply(val_i, val_j)
 
-                sum = tf.multiply(tf.reduce_sum(field_emb_sum, axis=1), val_sum)
+                sum = tf.multiply(tf.reduce_sum(field_emb_sum), val_sum)
                 second_order += sum
         ## final objective function
         logits = second_order + first_order + bias
