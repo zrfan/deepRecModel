@@ -100,11 +100,22 @@ def get1MTrainData(path):
     
     return user_info, movie_info, rating_info, user_cols, movie_cols
 
+def splitTrainAndTestRating(path):
+    rating_info = pd.read_csv(path+"/ratings.dat", header=None, delimiter="::", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
+    rating_info.sort_values(by="timestamp", ascending=True)
+    size = int(rating_info.shape[0]*0.9)
+    train_rating = rating_info[:size]
+    test_rating = rating_info[size:]
+    train_rating.to_csv(path+"/train_rating.dat", index=False, header=None,delimiter="::", quoting=csv.QUOTE_NONE)
+    test_rating.to_csv(path+"/test_rating.dat", index=False, header=None,delimiter="::", quoting=csv.QUOTE_NONE)
+
 def get1MTrainDataWithNeg(path):
     user_info, movie_info, rating_info, user_cols, movie_cols = get1MTrainData(path)
 
 def main():
-    get1MTrainData("../data/ml-1m/")
+    path = "../data/ml-1m/"
+    # get1MTrainData(path)
+    splitTrainAndTestRating(path)
 
 if __name__=="__main__":
     main()
