@@ -146,7 +146,7 @@ class FFMModel(object):
             item_origin_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.strings.split([itemOriginInfo], ","),
                                                                                default_value="0"), [-1]),
                                                  out_type=tf.int32)
-            all_features = tf.concat([user_features, item_features], axis=0)
+            all_features = tf.concat([user_origin_features, item_origin_features], axis=0)
             feature_idx = all_features
             feature_fields = self.fieldTable.lookup(feature_idx)
             feature_values = tf.ones_like(feature_idx, dtype=tf.float32)

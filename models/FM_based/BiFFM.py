@@ -16,11 +16,12 @@ class BiFFMParams(object):
         bias = tf.get_variable(name='bias', dtype=tf.float32, initializer=bias_initializer, shape=[1])
         first_order_weights = tf.get_variable(name="first_order_weights", shape=[self.feature_size, 1], dtype=tf.float32, initializer=weights_initializer)
         second_order_weights = tf.get_variable(name="second_order_weights",
-                                               shape=[self.feature_size, self.field_size, self.embedding_size],
+                                               shape=[self.feature_size, self.embedding_size],
                                                dtype=tf.float32, initializer=weights_initializer)
         return {"bias":bias, "first_order_weights": first_order_weights, "second_order_weights": second_order_weights}
 
 class BiFFMModel(object):
+    """Bilinear FFM implementation of tensorflow"""
     def __init__(self, data_path, params):
         self.data_path, self.params = data_path, params
     def biffm_model_fn(self, feature, labels, mode):
@@ -30,5 +31,6 @@ class BiFFMModel(object):
         all_embeddings = weights["second_order_weights"]
         first_order_weights = weights["first_order_weights"]
         bias = weights["bias"]
+
 
 
