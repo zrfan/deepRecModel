@@ -30,8 +30,9 @@ class FFMModel(object):
     def ffm_model_fn(self, features, labels, mode):
         feature_size = self.params["feature_size"]
         batch_size, learning_rate, optimizer_used = self.params["batch_size"], self.params["learning_rate"], self.params["optimizer"]
+        origin_feature = features["origin_feature"]
         feature_idx = features["feature_idx"]
-        feature_idx = tf.reshape(feature_idx, shape=[batch_size, tf.shape(feature_idx)[1]])
+        feature_idx = tf.reshape(feature_idx, shape=[batch_size, tf.shape(feature_idx)[1]], name="feature_idx")
         labels = tf.reshape(labels, shape=[batch_size, 1])
         feature_values = features["feature_values"]
         feature_values = tf.reshape(feature_values, shape=[batch_size, tf.shape(feature_values)[1], 1])
@@ -54,22 +55,27 @@ class FFMModel(object):
         second_order = tf.constant(0, dtype=tf.float32)
         input_number = feature_idx.get_shape().as_list()[1]
         print("input_number=", input_number)
-        for i in range(1, feature_size+1):
-            for j in range(i+1, feature_size+1):
-                # idx_i, idx_j = feature_idx[:, i], feature_idx[:, j]
-                # field_i, field_j = feature_fields[:, i], feature_fields[:, j]
-
-                field_i, field_j = self.field_dict[i], self.field_dict[j]
-                emb_i, emb_j = all_embedding[i, field_j, :], all_embedding[j, field_i, :]
-                val_i, val_j = feature_values[:, i, :], feature_values[:, j, :]
-
-                field_emb_sum = tf.multiply(emb_i, emb_j)
-                val_sum = tf.multiply(val_i, val_j)
-
-                sum = tf.multiply(tf.reduce_sum(field_emb_sum), val_sum)
-                second_order += sum
-        ## final objective function
-        logits = second_order + first_order + bias
+        quad_term = tf.gather(all_embedding, feature_idx, name="feature_emb")
+        quad_term = tf.reduce_sum(quad_term * tf.transpose(quad_term, [0, 2, 1, 3]), -1, name="quad_term")  # quad_term:[batch, feature_len, field_size, emb_size]
+        # temp = []
+        # for i in range(1, feature_size+1):
+        #     temp.append()
+        # for i in range(1, feature_size+1):
+        #     for j in range(i+1, feature_size+1):
+        #         # idx_i, idx_j = feature_idx[:, i], feature_idx[:, j]
+        #         # field_i, field_j = feature_fields[:, i], feature_fields[:, j]
+        #
+        #         field_i, field_j = self.field_dict[i], self.field_dict[j]
+        #         emb_i, emb_j = all_embedding[i, field_j, :], all_embedding[j, field_i, :]
+        #         val_i, val_j = origin_feature[:, i, :], origin_feature[:, j, :]
+        #
+        #         field_emb_sum = tf.multiply(emb_i, emb_j)
+        #         val_sum = tf.multiply(val_i, val_j)
+        #
+        #         sum = tf.multiply(tf.reduce_sum(field_emb_sum), val_sum)
+        #         second_order += sum
+        ## final objective function   second_order +
+        logits = first_order + bias
         predicts = tf.sigmoid(logits)
 
         ## loss function
@@ -96,7 +102,7 @@ class FFMModel(object):
         config = tf.estimator.RunConfig(keep_checkpoint_max=2, log_step_count_steps=500, save_summary_steps=50,
                                         save_checkpoints_steps=50000).replace(session_config=session_config)
         ffm_model = tf.estimator.Estimator(model_fn=self.ffm_model_fn, model_dir="../data/model/ffm/", config=config)
-        ffm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["sigmoid_loss"], every_n_iter=500)])
+        ffm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook([ "feature_idx", "feature_emb", "sigmoid_loss"], every_n_iter=500)])
     def train_input_fn(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
         feature_dict = {"gender": 0, "age": 1, "occupation": 2, "genres": 3, "year": 4}
@@ -146,13 +152,14 @@ class FFMModel(object):
             item_origin_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.strings.split([itemOriginInfo], ","),
                                                                                default_value="0"), [-1]),
                                                  out_type=tf.int32)
-            all_features = tf.concat([user_origin_features, item_origin_features], axis=0)
-            feature_idx = all_features
+            origin_feature = tf.concat([user_origin_features, item_origin_features], axis=0)
+
+            feature_idx = tf.concat([user_features, item_features], axis=0)
             feature_fields = self.fieldTable.lookup(feature_idx)
             feature_values = tf.ones_like(feature_idx, dtype=tf.float32)
             label = tf.divide(tf.cast(label, tf.float32), 5)
             feature_dict = {"feature_idx": feature_idx, "feature_values": feature_values, "feature_fields": feature_fields,
-                            "itemId": itemId, "userId": userId,
+                            "itemId": itemId, "userId": userId, "origin_feature": origin_feature,
                             "user_info": userOriginInfo, "item_info": itemOriginInfo, "user_features": user_features, "item_features": item_features}
             return (feature_dict, label)
         dataset = tf.data.Dataset.from_tensor_slices(rating_info).map(decode, num_parallel_calls=2)
@@ -160,7 +167,7 @@ class FFMModel(object):
         dataset = dataset.prefetch(self.params["batch_size"]*10)\
             .padded_batch(self.params["batch_size"],
                           padded_shapes=({"feature_idx": [None], "feature_values": [None], "feature_fields": [None],
-                                          "itemId": [], "userId": [],
+                                          "itemId": [], "userId": [], "origin_feature": [None],
                                           "user_info":[], "item_info":[], "user_features":[None], "item_features":[None]},
                                          []))
         return dataset
