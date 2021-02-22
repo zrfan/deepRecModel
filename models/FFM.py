@@ -173,11 +173,11 @@ class FFMModel(object):
                                          []))
         self.train_dataset, self.test_dataset = train_dataset, test_dataset
     def train_input_fn(self):
-        if self.train_dataset is None:
+        if not hasattr(self, 'train_dataset'):
             self.get_dataset()
         return self.train_dataset
     def test_input_fn(self):
-        if self.train_dataset is None:
+        if not hasattr(self, 'test_dataset'):
             self.get_dataset()
         return self.test_dataset
     def test_run_dataset(self):
