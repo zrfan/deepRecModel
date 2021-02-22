@@ -181,7 +181,7 @@ class FFMModel(object):
                 batch += 1
 
 def main(_):
-    params = {"embedding_size": 2, "feature_size": 0, "field_size": 0, "batch_size": 1, "learning_rate": 0.001,"epochs":200,
+    params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
               "optimizer": "adam"}
     fm = FFMModel(data_path="../data/ml-1m/", params=params)
     # fm.test_dataset()
