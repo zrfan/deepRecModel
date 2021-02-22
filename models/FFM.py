@@ -99,7 +99,7 @@ class FFMModel(object):
         config = tf.estimator.RunConfig(keep_checkpoint_max=2, log_step_count_steps=500, save_summary_steps=50,
                                         save_checkpoints_steps=50000).replace(session_config=session_config)
         ffm_model = tf.estimator.Estimator(model_fn=self.ffm_model_fn, model_dir="../data/model/ffm/", config=config)
-        ffm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook([ "feature_idx", "feature_emb", "quad_term",
+        ffm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook([ "feature_idx",
                                                                                           "sigmoid_loss"], every_n_iter=500)])
     def train_input_fn(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
