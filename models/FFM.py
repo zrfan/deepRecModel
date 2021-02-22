@@ -21,8 +21,6 @@ class FFMParams(object):
         weights["ffm_bias"] = tf.get_variable(name="bias", dtype=tf.float32, initializer=bias_initializer, shape=[1])
         return weights
 
-# https://zhuanlan.zhihu.com/p/145928996
-# https://github.com/wziji/deep_ctr
 class FFMModel(object):
     """Field-aware of Factorization Machine implementation for tensorflow"""
     def __init__(self, data_path, params):
@@ -101,8 +99,8 @@ class FFMModel(object):
         ffm_model = tf.estimator.Estimator(model_fn=self.ffm_model_fn, model_dir="../data/model/ffm/", config=config)
         ffm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook([ "feature_idx",
                                                                                           "sigmoid_loss"], every_n_iter=500)])
-    def train_input_fn(self):
-        userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
+    def get_dataset(self):
+        userData, itemData, train_rating_info, test_rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
         feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
         self.params["feature_size"] = len(user_cols) + len(movie_cols)
         self.params["field_size"] = len(set(feature_dict.values()))
@@ -114,7 +112,7 @@ class FFMModel(object):
             field_dict[idx] = feature_dict[col.split("_")[0]]
         self.field_dict = field_dict
         self.fieldTable = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(featureIdx, fieldIdx),
-                                                 tf.constant(0, dtype=tf.int32))
+                                                      tf.constant(0, dtype=tf.int32))
         def getTable(data, start_idx, f="user"):
             all_idx, infos, originInfos = [], [], []
             test = 1
@@ -142,14 +140,14 @@ class FFMModel(object):
                                                                                default_value="0"), [-1]),
                                                  out_type=tf.int32)
             item_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.strings.split([itemInfo], ","),
-                                                                    default_value="0"), [-1]),
+                                                                               default_value="0"), [-1]),
                                                  out_type=tf.int32)
             user_origin_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.strings.split([userOriginInfo], ","),
-                                                                               default_value="0"), [-1]),
-                                                 out_type=tf.int32)
+                                                                                      default_value="0"), [-1]),
+                                                        out_type=tf.int32)
             item_origin_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.strings.split([itemOriginInfo], ","),
-                                                                               default_value="0"), [-1]),
-                                                 out_type=tf.int32)
+                                                                                      default_value="0"), [-1]),
+                                                        out_type=tf.int32)
             origin_feature = tf.concat([user_origin_features, item_origin_features], axis=0)
 
             feature_idx = tf.concat([user_features, item_features], axis=0)
@@ -160,17 +158,31 @@ class FFMModel(object):
                             "itemId": itemId, "userId": userId, "origin_feature": origin_feature,
                             "user_info": userOriginInfo, "item_info": itemOriginInfo, "user_features": user_features, "item_features": item_features}
             return (feature_dict, label)
-        dataset = tf.data.Dataset.from_tensor_slices(rating_info).map(decode, num_parallel_calls=2)
-        dataset = dataset.repeat(self.params["epochs"])
-        dataset = dataset.prefetch(self.params["batch_size"]*10)\
+        train_dataset = tf.data.Dataset.from_tensor_slices(train_rating_info).map(decode, num_parallel_calls=2).repeat(self.params["epochs"])
+        train_dataset = train_dataset.prefetch(self.params["batch_size"]*10) \
             .padded_batch(self.params["batch_size"],
                           padded_shapes=({"feature_idx": [None], "feature_values": [None], "feature_fields": [None],
                                           "itemId": [], "userId": [], "origin_feature": [None],
                                           "user_info":[], "item_info":[], "user_features":[None], "item_features":[None]},
                                          []))
-        return dataset
-    def test_dataset(self):
-        dataset = self.train_input_fn().make_initializable_iterator()
+        test_dataset = tf.data.Dataset.from_tensor_slices(test_rating_info).map(decode, num_parallel_calls=2).repeat(self.params["epochs"]).prefetch(self.params["batch_size"]*10) \
+            .padded_batch(self.params["batch_size"],
+                          padded_shapes=({"feature_idx": [None], "feature_values": [None], "feature_fields": [None],
+                                          "itemId": [], "userId": [], "origin_feature": [None],
+                                          "user_info":[], "item_info":[], "user_features":[None], "item_features":[None]},
+                                         []))
+        self.train_dataset, self.test_dataset = train_dataset, test_dataset
+    def train_input_fn(self):
+        if self.train_dataset is None:
+            self.get_dataset()
+        return self.train_dataset
+    def test_input_fn(self):
+        if self.train_dataset is None:
+            self.get_dataset()
+        return self.test_dataset
+    def test_run_dataset(self):
+        self.get_dataset()
+        dataset = self.train_dataset.make_initializable_iterator()
         next_ele = dataset.get_next()
         batch = 1
         with tf.train.MonitoredTrainingSession() as sess:
@@ -184,7 +196,7 @@ def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
               "optimizer": "adam"}
     fm = FFMModel(data_path="../data/ml-1m/", params=params)
-    # fm.test_dataset()
+    # fm.test_run_dataset()
     fm.train()
 
 
