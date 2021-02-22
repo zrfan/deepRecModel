@@ -64,7 +64,7 @@ class FFMModel(object):
             for j in range(i+1, feature_size+1):
                 field_i, field_j = self.field_dict[i], self.field_dict[j]
                 emb_i, emb_j = all_embedding[i, field_j, :], all_embedding[j, field_i, :]
-                val_i, val_j = origin_feature[:, i, :], origin_feature[:, j, :]
+                val_i, val_j = origin_feature[:, i], origin_feature[:, j]
 
                 field_emb_sum = tf.multiply(emb_i, emb_j)
                 val_sum = tf.multiply(val_i, val_j)
