@@ -55,8 +55,10 @@ class FFMModel(object):
         second_order = tf.constant(0, dtype=tf.float32)
         input_number = feature_idx.get_shape().as_list()[1]
         print("input_number=", input_number)
-        quad_term = tf.gather(all_embedding, feature_idx, name="feature_emb")
-        quad_term = tf.reduce_sum(quad_term * tf.transpose(quad_term, [0, 2, 1, 3]), -1, name="quad_term")  # quad_term:[batch, feature_len, field_size, emb_size]
+        feature_emb = tf.gather(all_embedding, feature_idx, name="feature_emb")
+        print("************** feature_emb= ", feature_emb)
+        quad_term = tf.reduce_sum(feature_emb * tf.transpose(feature_emb, [0, 2, 1, 3]), -1, name="quad_term")  # quad_term:[batch, feature_len, field_size, emb_size]
+        print("************** quad_term= ", quad_term)
         # temp = []
         # for i in range(1, feature_size+1):
         #     temp.append()
@@ -102,7 +104,8 @@ class FFMModel(object):
         config = tf.estimator.RunConfig(keep_checkpoint_max=2, log_step_count_steps=500, save_summary_steps=50,
                                         save_checkpoints_steps=50000).replace(session_config=session_config)
         ffm_model = tf.estimator.Estimator(model_fn=self.ffm_model_fn, model_dir="../data/model/ffm/", config=config)
-        ffm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook([ "feature_idx", "feature_emb", "sigmoid_loss"], every_n_iter=500)])
+        ffm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook([ "feature_idx", "feature_emb", "quad_term",
+                                                                                          "sigmoid_loss"], every_n_iter=500)])
     def train_input_fn(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
         feature_dict = {"gender": 0, "age": 1, "occupation": 2, "genres": 3, "year": 4}
