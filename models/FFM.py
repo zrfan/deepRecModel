@@ -69,7 +69,7 @@ class FFMModel(object):
                 field_emb_sum = tf.multiply(emb_i, emb_j)
                 val_sum = tf.multiply(val_i, val_j)
 
-                sum = tf.multiply(tf.reduce_sum(field_emb_sum), val_sum)
+                sum = tf.multiply(tf.reduce_sum(field_emb_sum), tf.cast(val_sum, dtype=tf.float32))
                 second_order += sum
         ## final objective function   second_order +
         logits = first_order + bias
