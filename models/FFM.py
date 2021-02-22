@@ -106,7 +106,7 @@ class FFMModel(object):
     def train_input_fn(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
         feature_dict = {"gender": 0, "age": 1, "occupation": 2, "genres": 3, "year": 4}
-        self.params["feature_size"] = len(user_cols) + len(movie_cols) - 2
+        self.params["feature_size"] = len(user_cols) + len(movie_cols)
         self.params["field_size"] = len(feature_dict.keys())
         featureIdx, fieldIdx = [], []
         field_dict = dict()
