@@ -18,7 +18,7 @@ class BiFFMParams(object):
         second_order_weights = tf.get_variable(name="second_order_weights",
                                                shape=[self.feature_size, self.embedding_size],
                                                dtype=tf.float32, initializer=weights_initializer)
-        return {"bias":bias, "first_order_weights": first_order_weights, "second_order_weights": second_order_weights}
+        return {"bias": bias, "first_order_weights": first_order_weights, "second_order_weights": second_order_weights}
 
 class BiFFMModel(object):
     """Bilinear FFM implementation of tensorflow"""
