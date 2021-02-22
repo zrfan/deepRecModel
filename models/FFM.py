@@ -53,29 +53,24 @@ class FFMModel(object):
 
         ## second_order
         second_order = tf.constant(0, dtype=tf.float32)
-        input_number = feature_idx.get_shape().as_list()[1]
-        print("input_number=", input_number)
-        feature_emb = tf.gather(all_embedding, feature_idx, name="feature_emb")
-        print("************** feature_emb= ", feature_emb)
-        quad_term = tf.reduce_sum(feature_emb * tf.transpose(feature_emb, [0, 2, 1, 3]), -1, name="quad_term")  # quad_term:[batch, feature_len, field_size, emb_size]
-        print("************** quad_term= ", quad_term)
+        # feature_emb = tf.gather(all_embedding, feature_idx, name="feature_emb")
+        # print("************** feature_emb= ", feature_emb)
+        # quad_term = tf.reduce_sum(feature_emb * tf.transpose(feature_emb, [0, 2, 1, 3]), -1, name="quad_term")  # quad_term:[batch, feature_len, field_size, emb_size]
+        # print("************** quad_term= ", quad_term)
         # temp = []
         # for i in range(1, feature_size+1):
         #     temp.append()
-        # for i in range(1, feature_size+1):
-        #     for j in range(i+1, feature_size+1):
-        #         # idx_i, idx_j = feature_idx[:, i], feature_idx[:, j]
-        #         # field_i, field_j = feature_fields[:, i], feature_fields[:, j]
-        #
-        #         field_i, field_j = self.field_dict[i], self.field_dict[j]
-        #         emb_i, emb_j = all_embedding[i, field_j, :], all_embedding[j, field_i, :]
-        #         val_i, val_j = origin_feature[:, i, :], origin_feature[:, j, :]
-        #
-        #         field_emb_sum = tf.multiply(emb_i, emb_j)
-        #         val_sum = tf.multiply(val_i, val_j)
-        #
-        #         sum = tf.multiply(tf.reduce_sum(field_emb_sum), val_sum)
-        #         second_order += sum
+        for i in range(1, feature_size+1):
+            for j in range(i+1, feature_size+1):
+                field_i, field_j = self.field_dict[i], self.field_dict[j]
+                emb_i, emb_j = all_embedding[i, field_j, :], all_embedding[j, field_i, :]
+                val_i, val_j = origin_feature[:, i, :], origin_feature[:, j, :]
+
+                field_emb_sum = tf.multiply(emb_i, emb_j)
+                val_sum = tf.multiply(val_i, val_j)
+
+                sum = tf.multiply(tf.reduce_sum(field_emb_sum), val_sum)
+                second_order += sum
         ## final objective function   second_order +
         logits = first_order + bias
         predicts = tf.sigmoid(logits)
@@ -108,9 +103,9 @@ class FFMModel(object):
                                                                                           "sigmoid_loss"], every_n_iter=500)])
     def train_input_fn(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
-        feature_dict = {"gender": 0, "age": 1, "occupation": 2, "genres": 3, "year": 4}
+        feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
         self.params["feature_size"] = len(user_cols) + len(movie_cols)
-        self.params["field_size"] = len(feature_dict.keys())
+        self.params["field_size"] = len(set(feature_dict.values()))
         featureIdx, fieldIdx = [], []
         field_dict = dict()
         for col, idx in zip(user_cols+movie_cols, list(range(1, len(user_cols+movie_cols)+1))):
