@@ -6,7 +6,12 @@ models for recommendation system
 
 - recall model: LR, CF, MF
 
-- rank model: FM, FFM, BiFFM, deepFM, xDeepFM, AoFFM, NeuralFFM, WDL, DSSM, DIN, DIEN, BST, MMoE, ESSM, 
+- rank model: 
+    - FM系列：FM, FFM, BiFFM（待完善）, deepFM, xDeepFM, AoFFM, NeuralFFM
+    - wide&deep：WDL
+    - 双塔：DSSM
+    - 序列模型：DIN, DIEN, BST
+    - 多目标：MMoE, ESSM, PLE
 
 - to do list:
     - DCN
