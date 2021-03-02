@@ -103,8 +103,17 @@ class FMModel(object):
         # metric
         eval_metric_ops = {"auc": tf.metrics.auc(labels, predicts)}
         predictions = {"prob": predicts}
-        return tf.estimator.EstimatorSpec(mode=tf.estimator.ModeKeys.TRAIN, predictions=predicts, loss=loss,
-                                          eval_metric_ops=eval_metric_ops, train_op=train_op)
+
+        # return tf.estimator.EstimatorSpec(mode=tf.estimator.ModeKeys.TRAIN, predictions=predicts, loss=loss,
+        #                                   eval_metric_ops=eval_metric_ops, train_op=train_op)
+        export_outputs = {tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY: tf.estimator.export.PredictOutput(predictions)}
+        # predict 输出
+        if mode == tf.estimator.ModeKeys.PREDICT:
+            return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, export_outputs=export_outputs)
+        elif mode == tf.estimator.ModeKeys.EVAL:
+            return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, loss=loss, eval_metric_ops=eval_metric_ops)
+        elif mode == tf.estimator.ModeKeys.TRAIN:
+            return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, loss=loss, eval_metric_ops=eval_metric_ops, train_op=train_op)
 
     def train_input_fn(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
@@ -123,16 +132,14 @@ class FMModel(object):
                 feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
                 yield (feature_dict, y)
 
-        dataset = tf.data.Dataset.from_generator(gen,
+        self.train_dataset = tf.data.Dataset.from_generator(gen,
                                                  ({"feature_idx": tf.int64, "feature_values": tf.float32}, tf.float32),
                                                  ({"feature_idx": tf.TensorShape([None]),
                                                    "feature_values": tf.TensorShape([None])},
-                                                  tf.TensorShape([])))
-        dataset = dataset.prefetch(self.params["batch_size"] * 10).padded_batch(self.params["batch_size"],
-                                                                                padded_shapes=({"feature_idx": [None],
-                                                                                                "feature_values": [
-                                                                                                    None]}, []))
-        return dataset
+                                                  tf.TensorShape([])))\
+            .prefetch(self.params["batch_size"] * 10)\
+            .padded_batch(self.params["batch_size"],padded_shapes=({"feature_idx": [None], "feature_values": [None]}, []), padding_values=-1)
+        return self.train_dataset
 
     def input_fn_test(self):
         userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
@@ -204,9 +211,25 @@ class FMModel(object):
                                         save_checkpoints_steps=50000).replace(session_config=session_config)
 
         fm_model = tf.estimator.Estimator(model_fn=self.fm_model_fn, model_dir="../data/model/", config=config)
-        fm_model.train(input_fn=self.input_fn_test, hooks=[tf.train.LoggingTensorHook(["first_order", "sigmoid_loss"],
-                                                                                      every_n_iter=500)])
+        # train
+        fm_model.train(input_fn=self.input_fn_test, hooks=[tf.train.LoggingTensorHook(["first_order", "sigmoid_loss"],every_n_iter=500)])
 
+        # train&eval
+        train_spec = tf.estimator.TrainSpec(input_fn=self.train_input_fn)
+        eval_spec = tf.estimator.EvalSpec(input_fn=self.test_input_fn, steps=None, start_delay_secs=1000, throttle_secs=1200)
+        tf.estimator.train_and_evaluate(fm_model, train_spec, eval_spec)
+        # eval
+        fm_model.evaluate(input_fn=self.test_input_fn)
+        # predict
+        preds = fm_model.predict(input_fn=self.test_input_fn, predict_keys="prob")
+        with open("pred.txt", "w") as fo:
+            for prob in preds:
+                fo.write("%f\n" % (prob["prob"]))
+        # export
+        feature_spec = {"feature_ids": tf.placeholder(dtype=tf.int64, shape=[None, self.params["field_size"]], name="feature_idx"),
+                        "feature_vals": tf.placeholder(dtype=tf.float32, shape=[None, self.params["field_size"]], name="feature_vals")}
+        serving_input_receiver_fn = tf.estimator.export.build_raw_serving_input_receiver_fn(feature_spec)
+        fm_model.export_saved_model(self.params["model_save_dir"], serving_input_receiver_fn)
     def test_dataset(self):
         dataset = self.input_fn_test().make_initializable_iterator()
         next_ele = dataset.get_next()

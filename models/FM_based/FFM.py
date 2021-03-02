@@ -23,9 +23,10 @@ class FFMParams(object):
 
 class FFMModel(object):
     """Field-aware of Factorization Machine implementation for tensorflow"""
-    def __init__(self, data_path, params):
-        self.data_path, self.params = data_path, params
-    def ffm_model_fn(self, features, labels, mode):
+    def __init__(self, params):
+        self.params = params
+        self.data_path = params["data_path"]
+    def ffm_model_fn(self, features, labels, mode, params):
         feature_size = self.params["feature_size"]
         batch_size, learning_rate, optimizer_used = self.params["batch_size"], self.params["learning_rate"], self.params["optimizer"]
         origin_feature = features["origin_feature"]
@@ -89,16 +90,37 @@ class FFMModel(object):
         # metric
         eval_metric_ops = {"auc": tf.metrics.auc(labels, predicts)}
         predictions = {"prob": predicts}
-        return tf.estimator.EstimatorSpec(mode=tf.estimator.ModeKeys.TRAIN, predictions=predicts, loss=loss,
-                                          eval_metric_ops=eval_metric_ops, train_op=train_op)
+        export_outputs = {tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY: tf.estimator.export.PredictOutput(predictions)}
+        # predict 输出
+        if mode == tf.estimator.ModeKeys.PREDICT:
+            return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, export_outputs=export_outputs)
+        elif mode == tf.estimator.ModeKeys.EVAL:
+            return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, loss=loss, eval_metric_ops=eval_metric_ops)
+        elif mode == tf.estimator.ModeKeys.TRAIN:
+            return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, loss=loss, eval_metric_ops=eval_metric_ops, train_op=train_op)
     def train(self):
         session_config = tf.ConfigProto(log_device_placement=False, device_count={"GPU":0})
         session_config.gpu_options.per_process_gpu_memory_fraction = 0.8
         config = tf.estimator.RunConfig(keep_checkpoint_max=2, log_step_count_steps=500, save_summary_steps=50,
                                         save_checkpoints_steps=50000).replace(session_config=session_config)
-        ffm_model = tf.estimator.Estimator(model_fn=self.ffm_model_fn, model_dir="../data/model/ffm/", config=config)
-        ffm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook([ "feature_idx",
-                                                                                          "sigmoid_loss"], every_n_iter=500)])
+        ffm_model = tf.estimator.Estimator(model_fn=self.ffm_model_fn, model_dir="../data/model/ffm/", config=config, params=self.params)
+        train_spec = tf.estimator.TrainSpec(input_fn=self.train_input_fn)
+        eval_spec = tf.estimator.EvalSpec(input_fn=self.test_input_fn, steps=None, start_delay_secs=1000, throttle_secs=1200)
+        tf.estimator.train_and_evaluate(ffm_model, train_spec, eval_spec)
+        # ffm_model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["feature_idx",
+        #                                                                                   "sigmoid_loss"], every_n_iter=500)])
+        # eval
+        ffm_model.evaluate(input_fn=self.test_input_fn)
+        # predict
+        preds = ffm_model.predict(input_fn=self.test_input_fn, predict_keys="prob")
+        with open("pred.txt", "w") as fo:
+            for prob in preds:
+                fo.write("%f\n" % (prob["prob"]))
+        # export
+        feature_spec = {"feature_ids": tf.placeholder(dtype=tf.int64, shape=[None, self.params["field_size"]], name="feature_idx"),
+                        "feature_vals": tf.placeholder(dtype=tf.float32, shape=[None, self.params["field_size"]], name="feature_vals")}
+        serving_input_receiver_fn = tf.estimator.export.build_raw_serving_input_receiver_fn(feature_spec)
+        ffm_model.export_saved_model(self.params["model_save_dir"], serving_input_receiver_fn)
     def get_dataset(self):
         userData, itemData, train_rating_info, test_rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
         feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
@@ -194,8 +216,8 @@ class FFMModel(object):
 
 def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
-              "optimizer": "adam"}
-    fm = FFMModel(data_path="../../data/ml-1m/", params=params)
+              "optimizer": "adam", "data_path": "../../data/ml-1m/"}
+    fm = FFMModel(params=params)
     # fm.test_run_dataset()
     fm.train()
 

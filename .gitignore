@@ -1,6 +1,11 @@
 .DS_Store
 .idea/
+.vscode/
 data/.DS_Store
 data/ml-1m
 data/ml-20m
 data/ml-25m
+models/*/*.pyc
+data/model/*
+
+
