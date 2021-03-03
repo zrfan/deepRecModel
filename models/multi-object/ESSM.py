@@ -88,7 +88,7 @@ class ESSMModel(BaseEstimatorModel):
             user_features = tf.reshape(tf.sparse.to_dense(tf.strings.split([userInfo], ","), default_value="0"), shape=[-1])
             item_features = tf.reshape(tf.sparse.to_dense(tf.strings.split([itemInfo], ","), default_value="0"), shape=[-1])
             genres = tf.reshape(tf.sparse.to_dense(tf.strings.split([item_features[0]], "|"), default_value="0"), shape=[-1])
-            feature_dict = {"user_feature": user_features, "gender": user_features[0], "age": user_features[1],
+            feature_dict = {"item_features": item_features, "gender": user_features[0], "age": user_features[1],
                             "occupation": user_features[2], "genres": genres, "year": item_features[1],
                             "userId": userId, "itemId": itemId}
             label = tf.divide(label, 5)
