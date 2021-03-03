@@ -78,7 +78,10 @@ class ESSMModel(BaseEstimatorModel):
                 train_op = None
         return tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=metrics, train_op=train_op)
     def get_dataset(self, params):
-        userData, itemData, train_rating_info, test_rating_info, user_cols, movie_cols = get1MTrainDataOriginFeatures(self.data_path)
+        userData, itemData, train_rating_info, test_rating_info, user_cols, movie_cols,ageList, occupationList, genresList, yearList\
+            = get1MTrainDataOriginFeatures(self.data_path)
+        self.ageList, self.occupationList, self.genresList, self.yearList = ageList, occupationList, genresList, yearList
+
         print(itemData.head(10))
         feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
         self.params["feature_size"] = len(user_cols) + len(movie_cols)
@@ -96,7 +99,8 @@ class ESSMModel(BaseEstimatorModel):
             return feature_dict, label
 
         train_dataset = tf.data.Dataset.from_tensor_slices(train_rating_info).map(decode, num_parallel_calls=2).repeat(params["epochs"])
-        self.train_dataset = train_dataset
+        test_dataset = tf.data.Dataset.from_tensor_slices(train_rating_info).map(decode, num_parallel_calls=2).repeat(params["epochs"])
+        self.train_dataset, self.test_dataset = train_dataset, test_dataset
     def test_run_dataset(self, params):
         self.get_dataset(params)
         dataset = self.train_dataset.make_initializable_iterator()

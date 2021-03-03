@@ -135,7 +135,7 @@ def get1MTrainDataOriginFeatures(path):
     train_rating_info = pd.read_csv(path+"/train_rating.dat", header=None, delimiter=",", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
     test_rating_info = pd.read_csv(path+"/test_rating.dat", header=None, delimiter=",", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
 
-    return user_info, movie_info, train_rating_info, test_rating_info, user_info.columns,movie_info.columns
+    return user_info, movie_info, train_rating_info, test_rating_info, user_info.columns,movie_info.columns, ageList, occupationList, genresList, yearList
 
 def get1MTrainDataWithNeg(path):
     user_info, movie_info, rating_info, user_cols, movie_cols = get1MTrainData(path)
