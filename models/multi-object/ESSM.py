@@ -79,6 +79,7 @@ class ESSMModel(BaseEstimatorModel):
         return tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=metrics, train_op=train_op)
     def get_dataset(self, params):
         userData, itemData, train_rating_info, test_rating_info, user_cols, movie_cols = get1MTrainDataOriginFeatures(self.data_path)
+        print(itemData.head(10))
         feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
         self.params["feature_size"] = len(user_cols) + len(movie_cols)
         all_feature_hashtable, ulen = registerAllFeatureHashTable(userData, itemData)
