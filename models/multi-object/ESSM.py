@@ -85,9 +85,10 @@ class ESSMModel(BaseEstimatorModel):
         def decode(row):
             userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), tf.cast(row[2], dtype=tf.float32)
             userInfo, itemInfo = all_feature_hashtable.lookup(userId), all_feature_hashtable.lookup(itemId)
-            user_features = tf.reshape(tf.sparse.to_dense(tf.string_split([userInfo], ","), default_value="0"), shape=[-1])
-            gender, age, occupation = user_features[0], user_features[1], user_features[2]
-            feature_dict = {"user_feature": user_features, "gender": gender}
+            user_features = tf.reshape(tf.sparse.to_dense(tf.strings.split([userInfo], ","), default_value="0"), shape=[-1])
+            item_features = tf.reshape(tf.sparse.to_dense(tf.strings.split([itemInfo], ","), default_value="0"), shape=[-1])
+            genres = tf.reshape(tf.sparse.to_dense(tf.strings.split([item_features[0]], "|"), default_value="0"), shape=[-1])
+            feature_dict = {"user_feature": user_features, "gender": user_features[0], "age": user_features[1], "occupation": user_features[2], "genres": genres, "year": item_features[1]}
             label = tf.divide(label, 5)
             return feature_dict, label
 
