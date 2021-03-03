@@ -2,9 +2,11 @@
 # tf1.14
 import tensorflow as tf
 import os
-from data_util import get1MTrainDataOriginFeatures
-import BaseEstimatorModel
-from model_util import registerAllFeatureHashTable
+import sys
+
+from models.data_util import get1MTrainDataOriginFeatures
+import models.BaseEstimatorModel
+from models.model_util import registerAllFeatureHashTable
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
 
