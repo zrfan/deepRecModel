@@ -2,8 +2,9 @@
 # tf1.14
 import tensorflow as tf
 import os
-from models.data_util import get1MTrainData
+from models.data_util import get1MTrainDataOriginFeatures
 from models import BaseEstimatorModel
+from models.model_util import registerAllFeatureHashTable
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
 
@@ -75,11 +76,15 @@ class ESSMModel(BaseEstimatorModel):
                 train_op = None
         return tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=metrics, train_op=train_op)
     def get_dataset(self, params):
-        userData, itemData, train_rating_info, test_rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
+        userData, itemData, train_rating_info, test_rating_info, user_cols, movie_cols = get1MTrainDataOriginFeatures(self.data_path)
         feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
         self.params["feature_size"] = len(user_cols) + len(movie_cols)
-        self.params["field_size"] = len(set(feature_dict.values()))
-        featureIdx, fieldIdx = [], []
+        all_feature_hashtable = registerAllFeatureHashTable(userData, itemData)
+        def decode(row):
+            userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), tf.cast(row[2], dtype=tf.float32)
+            userInfo, itemInfo = all_feature_hashtable.lookup(userId), all_feature_hashtable.lookup(itemId)
+            user_features = tf.sparse.to_dense(tf.string_split(userInfo, ","), default_value="0")
+
 
 
 

@@ -17,7 +17,7 @@ def registerHashTable(data, start_feature_idx, flag="user"):
     originInfoTable = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(all_idx, originInfos), default_value)
     return infoTable, originInfoTable
 
-def registerUserItemHashTable(userData, itemData):
+def registerAllFeatureIdxHashTable(userData, itemData):
     all_idx, infos, originInfos = [], [], []
     default_value = tf.constant("0", dtype=tf.string)
     for uidx, row in userData.iterrows():
@@ -36,3 +36,17 @@ def registerUserItemHashTable(userData, itemData):
     allInfoTable = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(all_idx, infos), default_value)
     originInfoTable = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(all_idx, originInfos), default_value)
     return allInfoTable, originInfoTable
+
+def registerAllFeatureHashTable(userData, itemData):
+    all_idx, originInfos = [], []
+    default_value = tf.constant("0", dtype=tf.string)
+    for uidx, row in userData.iterrows():
+        all_idx.append(uidx)
+        originInfos.append(','.join([str(x) for x in row]))
+    ulen, user_feature_len = len(all_idx), len(userData.columns)
+    for midx, row in itemData.iterrows():
+        all_idx.append(midx + ulen)
+        originInfos.append(','.join([str(x) for x in row]))
+    originInfoTable = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(all_idx, originInfos),
+                                                  default_value)
+    return originInfoTable
