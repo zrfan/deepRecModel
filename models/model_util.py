@@ -49,4 +49,4 @@ def registerAllFeatureHashTable(userData, itemData):
         originInfos.append(','.join([str(x) for x in row]))
     originInfoTable = tf.contrib.lookup.HashTable(tf.contrib.lookup.KeyValueTensorInitializer(all_idx, originInfos),
                                                   default_value)
-    return originInfoTable
+    return originInfoTable, ulen

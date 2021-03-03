@@ -81,10 +81,10 @@ class ESSMModel(BaseEstimatorModel):
         userData, itemData, train_rating_info, test_rating_info, user_cols, movie_cols = get1MTrainDataOriginFeatures(self.data_path)
         feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
         self.params["feature_size"] = len(user_cols) + len(movie_cols)
-        all_feature_hashtable = registerAllFeatureHashTable(userData, itemData)
+        all_feature_hashtable, ulen = registerAllFeatureHashTable(userData, itemData)
         def decode(row):
             userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), tf.cast(row[2], dtype=tf.float32)
-            userInfo, itemInfo = all_feature_hashtable.lookup(userId), all_feature_hashtable.lookup(itemId)
+            userInfo, itemInfo = all_feature_hashtable.lookup(userId), all_feature_hashtable.lookup(tf.add(itemId, tf.constant(ulen, dtype=tf.intt32)))
             user_features = tf.reshape(tf.sparse.to_dense(tf.strings.split([userInfo], ","), default_value="0"), shape=[-1])
             item_features = tf.reshape(tf.sparse.to_dense(tf.strings.split([itemInfo], ","), default_value="0"), shape=[-1])
             genres = tf.reshape(tf.sparse.to_dense(tf.strings.split([item_features[0]], "|"), default_value="0"), shape=[-1])
