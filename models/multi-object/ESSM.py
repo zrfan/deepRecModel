@@ -84,7 +84,7 @@ class ESSMModel(BaseEstimatorModel):
         all_feature_hashtable, ulen = registerAllFeatureHashTable(userData, itemData)
         def decode(row):
             userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), tf.cast(row[2], dtype=tf.float32)
-            userInfo, itemInfo = all_feature_hashtable.lookup(userId), all_feature_hashtable.lookup(tf.add(itemId, tf.constant(ulen, dtype=tf.intt32)))
+            userInfo, itemInfo = all_feature_hashtable.lookup(userId), all_feature_hashtable.lookup(tf.add(itemId, tf.constant(ulen, dtype=tf.int32)))
             user_features = tf.reshape(tf.sparse.to_dense(tf.strings.split([userInfo], ","), default_value="0"), shape=[-1])
             item_features = tf.reshape(tf.sparse.to_dense(tf.strings.split([itemInfo], ","), default_value="0"), shape=[-1])
             genres = tf.reshape(tf.sparse.to_dense(tf.strings.split([item_features[0]], "|"), default_value="0"), shape=[-1])
