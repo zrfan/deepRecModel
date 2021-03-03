@@ -93,8 +93,8 @@ class ESSMModel(BaseEstimatorModel):
 
         train_dataset = tf.data.Dataset.from_tensor_slices(train_rating_info).map(decode, num_parallel_calls=2).repeat(params["epochs"])
         self.train_dataset = train_dataset
-    def test_run_dataset(self):
-        self.get_dataset()
+    def test_run_dataset(self, params):
+        self.get_dataset(params)
         dataset = self.train_dataset.make_initializable_iterator()
         next_ele = dataset.get_next()
         batch = 1
@@ -109,7 +109,7 @@ def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
               "optimizer": "adam", "data_path": "../../data/ml-1m/"}
     fm = ESSMModel(params=params)
-    fm.test_run_dataset()
+    fm.test_run_dataset(params)
     # fm.train()
 
 
