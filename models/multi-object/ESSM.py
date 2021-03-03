@@ -2,9 +2,9 @@
 # tf1.14
 import tensorflow as tf
 import os
-from models.data_util import get1MTrainDataOriginFeatures
-from models import BaseEstimatorModel
-from models.model_util import registerAllFeatureHashTable
+from data_util import get1MTrainDataOriginFeatures
+import BaseEstimatorModel
+from model_util import registerAllFeatureHashTable
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
 
@@ -83,7 +83,37 @@ class ESSMModel(BaseEstimatorModel):
         def decode(row):
             userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), tf.cast(row[2], dtype=tf.float32)
             userInfo, itemInfo = all_feature_hashtable.lookup(userId), all_feature_hashtable.lookup(itemId)
-            user_features = tf.sparse.to_dense(tf.string_split(userInfo, ","), default_value="0")
+            user_features = tf.reshape(tf.sparse.to_dense(tf.string_split([userInfo], ","), default_value="0"), shape=[-1])
+            gender, age, occupation = user_features[0], user_features[1], user_features[2]
+            feature_dict = {"user_feature": user_features}
+            label = tf.divide(label, 5)
+            return feature_dict, label
+
+        train_dataset = tf.data.Dataset.from_tensor_slices(train_rating_info).map(decode, num_parallel_calls=2).repeat(params["epochs"])
+        self.train_dataset = train_dataset
+    def test_run_dataset(self):
+        self.get_dataset()
+        dataset = self.train_dataset.make_initializable_iterator()
+        next_ele = dataset.get_next()
+        batch = 1
+        with tf.train.MonitoredTrainingSession() as sess:
+            sess.run(dataset.initializer)
+            while batch <= 2:
+                value = sess.run(next_ele)
+                print("value=", value)
+                batch += 1
+
+def main(_):
+    params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
+              "optimizer": "adam", "data_path": "../../data/ml-1m/"}
+    fm = ESSMModel(params=params)
+    fm.test_run_dataset()
+    # fm.train()
+
+
+if __name__ == '__main__':
+    print(tf.__version__)
+    tf.app.run()
 
 
 
