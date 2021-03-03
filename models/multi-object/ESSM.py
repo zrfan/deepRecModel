@@ -3,9 +3,9 @@
 import tensorflow as tf
 import os
 import sys
-
+sys.path.append("../")
 from models.data_util import get1MTrainDataOriginFeatures
-import models.BaseEstimatorModel
+from models import BaseEstimatorModel
 from models.model_util import registerAllFeatureHashTable
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
