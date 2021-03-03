@@ -22,7 +22,7 @@ class EssmParams(object):
         multi_embeddings = tf.get_variable(name="multi_embeddings", dtype=tf.float32, initializer=weights_initializer, shape=[self.multi_feature_size, self.embedding_size])
         return {"sparse_embddings": sparse_embeddings, "multi_embeddings": multi_embeddings}
 
-class ESSMModel(BaseEstimatorModel):
+class ESSMModel(object.BaseEstimatorModel):
     def __init__(self, params):
         self.params = params
         self.data_path = params["data_path"]
