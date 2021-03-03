@@ -5,7 +5,7 @@ import os
 import sys
 sys.path.append("../")
 from models.data_util import get1MTrainDataOriginFeatures
-from models import BaseEstimatorModel
+from models.base_estimator_model import BaseEstimatorModel
 from models.model_util import registerAllFeatureHashTable
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
@@ -22,7 +22,7 @@ class EssmParams(object):
         multi_embeddings = tf.get_variable(name="multi_embeddings", dtype=tf.float32, initializer=weights_initializer, shape=[self.multi_feature_size, self.embedding_size])
         return {"sparse_embddings": sparse_embeddings, "multi_embeddings": multi_embeddings}
 
-class ESSMModel(object.BaseEstimatorModel):
+class ESSMModel(BaseEstimatorModel):
     def __init__(self, params):
         self.params = params
         self.data_path = params["data_path"]
