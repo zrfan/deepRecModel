@@ -129,7 +129,7 @@ def get1MTrainDataOriginFeatures(path):
     yearList = list(set(movie_info["year"].tolist()))
     print("genres len=", len(genresList), " years len=", len(yearList))
 
-    movie_info = movie_info["movieId", "genres", "year"]
+    movie_info = movie_info[["movieId", "genres", "year"]]
     movie_info = movie_info.set_index("movieId")
 
     train_rating_info = pd.read_csv(path+"/train_rating.dat", header=None, delimiter=",", quoting=csv.QUOTE_NONE, names=["userId", "movieId", "ratings", "timestamp"])
