@@ -87,7 +87,7 @@ class ESSMModel(BaseEstimatorModel):
             userInfo, itemInfo = all_feature_hashtable.lookup(userId), all_feature_hashtable.lookup(itemId)
             user_features = tf.reshape(tf.sparse.to_dense(tf.string_split([userInfo], ","), default_value="0"), shape=[-1])
             gender, age, occupation = user_features[0], user_features[1], user_features[2]
-            feature_dict = {"user_feature": user_features}
+            feature_dict = {"user_feature": user_features, "gender": gender}
             label = tf.divide(label, 5)
             return feature_dict, label
 
@@ -100,7 +100,7 @@ class ESSMModel(BaseEstimatorModel):
         batch = 1
         with tf.train.MonitoredTrainingSession() as sess:
             sess.run(dataset.initializer)
-            while batch <= 2:
+            while batch <= 20:
                 value = sess.run(next_ele)
                 print("value=", value)
                 batch += 1
