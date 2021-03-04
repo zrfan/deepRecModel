@@ -29,21 +29,35 @@ class ESSMModel(BaseEstimatorModel):
     def model_fn(self, features, labels, mode, params):
         sparse_feature_size, multi_feature_size, embedding_size = self.params["sparse_feature_size"], self.params["multi_feature_size"], self.params["embedding_size"]
         batch_size, learning_rate, optimizer_used = self.params["batch_size"], self.params["learning_rate"], self.params["optimizer"]
-        sparse_feature_idx, multi_feature_idx = features["sparse_feature_idx"], features["multi_feature_idx"]
+        feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
+        # ageList = [1, 18, 25, 35, 45, 50, 56]
+        # occupationList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        gender_column = tf.feature_column.categorical_column_with_identity("gender", num_buckets=2, default_value=0)
+        gender_column = tf.feature_column.indicator_column(gender_column)
+        age_column = tf.feature_column.categorical_column_with_vocabulary_list("age", self.ageList)
+        age_column = tf.feature_column.indicator_column(age_column)
+        occupation_column = tf.feature_column.categorical_column_with_identity("occupation", num_buckets=21, default_value=0)
+        occupation_column = tf.feature_column.indicator_column(occupation_column)
+        year_column = tf.feature_column.categorical_column_with_vocabulary_list("year", self.yearList)
+        year_column = tf.feature_column.indicator_column(year_column)
+        feature_columns = [gender_column, age_column, occupation_column, year_column]
+        input_layer = tf.feature_column.input_layer(features, feature_columns)
 
-        all_weights = EssmParams(self.params).initialize_weights()
-        sparse_embeddings, multi_embeddings = all_weights["sparse_embeddings"], all_weights["multi_embeddings"]
-        # one-hot category -> embedding
-        sparse_emb = tf.nn.embedding_lookup(sparse_embeddings, sparse_feature_idx)
-        sparse_emb = tf.reshape(sparse_emb, shape=[-1, sparse_feature_size*embedding_size])
-        # multi-hot category -> embedding
-        multi_emb = tf.nn.embedding_lookup(multi_embeddings, multi_feature_idx)  # [batch, len, emb_size]
-        sum_axis2 = tf.reduce_sum(multi_emb, axis=2)
-        nonzero = tf.count_nonzero(sum_axis2, keepdims=True, dtype=float)
-        multi_mean_emb = tf.div_no_nan(tf.reduce_sum(multi_emb, axis=1), nonzero)
-
-        # dense input dense
-        dense_input = tf.concat([sparse_emb, multi_mean_emb], axis=1, name="dense_vector")
+        # sparse_feature_idx, multi_feature_idx = features["sparse_feature_idx"], features["multi_feature_idx"]
+        # all_weights = EssmParams(self.params).initialize_weights()
+        # sparse_embeddings, multi_embeddings = all_weights["sparse_embeddings"], all_weights["multi_embeddings"]
+        # # one-hot category -> embedding
+        # sparse_emb = tf.nn.embedding_lookup(sparse_embeddings, sparse_feature_idx)
+        # sparse_emb = tf.reshape(sparse_emb, shape=[-1, sparse_feature_size*embedding_size])
+        # # multi-hot category -> embedding
+        # multi_emb = tf.nn.embedding_lookup(multi_embeddings, multi_feature_idx)  # [batch, len, emb_size]
+        # sum_axis2 = tf.reduce_sum(multi_emb, axis=2)
+        # nonzero = tf.count_nonzero(sum_axis2, keepdims=True, dtype=float)
+        # multi_mean_emb = tf.div_no_nan(tf.reduce_sum(multi_emb, axis=1), nonzero)
+        #
+        # # dense input dense
+        # dense_input = tf.concat([sparse_emb, multi_mean_emb], axis=1, name="dense_vector")
+        dense_input = tf.concat(input_layer, axis=1, name="dense_vecotr")
         len_layers = len(params["hidden_units"])
         with tf.variable_scope("ctr_deep"):
             dense_ctr = tf.layers.dense(inputs=dense_input, units=params["hidden_units"][0], activation=tf.nn.relu)
