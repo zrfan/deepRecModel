@@ -41,6 +41,7 @@ class ESSMModel(BaseEstimatorModel):
         year_column = tf.feature_column.categorical_column_with_vocabulary_list("year", self.yearList)
         year_column = tf.feature_column.indicator_column(year_column)
         feature_columns = [gender_column, age_column, occupation_column, year_column]
+
         input_layer = tf.feature_column.input_layer(features, feature_columns)
 
         # sparse_feature_idx, multi_feature_idx = features["sparse_feature_idx"], features["multi_feature_idx"]
@@ -57,6 +58,7 @@ class ESSMModel(BaseEstimatorModel):
         #
         # # dense input dense
         # dense_input = tf.concat([sparse_emb, multi_mean_emb], axis=1, name="dense_vector")
+        input_layer = tf.identity(input_layer, name="inputlayer")
         dense_input = tf.concat(input_layer, axis=1, name="dense_vecotr")
         len_layers = len(params["hidden_units"])
         with tf.variable_scope("ctr_deep"):
@@ -136,7 +138,7 @@ class ESSMModel(BaseEstimatorModel):
         return self.test_dataset
     def train(self):
         model = self.model_estimator(self.params)
-        model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["dense_vecotr", "ctr_score"], every_n_iter=500))
+        model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["inputlayer","dense_vecotr", "ctr_score"], every_n_iter=500))
 
 def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
