@@ -126,13 +126,24 @@ class ESSMModel(BaseEstimatorModel):
                 value = sess.run(next_ele)
                 print("value=", value)
                 batch += 1
+    def train_input_fn(self):
+        if not hasattr(self, 'train_dataset'):
+            self.get_dataset()
+        return self.train_dataset
+    def test_input_fn(self):
+        if not hasattr(self, 'test_dataset'):
+            self.get_dataset()
+        return self.test_dataset
+    def train(self):
+        model = self.model_estimator(self.params)
+        model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["dense_vecotr", "ctr_score"], every_n_iter=500))
 
 def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
               "optimizer": "adam", "data_path": "../data/ml-1m/"}
-    fm = ESSMModel(params=params)
-    fm.test_run_dataset(params)
-    # fm.train()
+    m = ESSMModel(params=params)
+    # m.test_run_dataset(params)
+    m.train()
 
 
 if __name__ == '__main__':
