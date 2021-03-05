@@ -158,7 +158,10 @@ class ESSMModel(BaseEstimatorModel):
         return self.test_dataset
     def train(self):
         model = self.model_estimator(self.params)
-        model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["inputlayer", "ctr_score"], every_n_iter=500)])
+        # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["inputlayer", "ctr_score"], every_n_iter=500)])
+        train_spec = tf.estimator.TrainSpec(input_fn=self.train_input_fn)
+        eval_spec = tf.estimator.EvalSpec(input_fn=self.test_input_fn, steps=None, start_delay_secs=1000, throttle_secs=1200)
+        tf.estimator.train_and_evaluate(model, train_spec, eval_spec)
 
 def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
