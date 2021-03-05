@@ -130,11 +130,11 @@ class ESSMModel(BaseEstimatorModel):
                 batch += 1
     def train_input_fn(self):
         if not hasattr(self, 'train_dataset'):
-            self.get_dataset()
+            self.get_dataset(self.params)
         return self.train_dataset
     def test_input_fn(self):
         if not hasattr(self, 'test_dataset'):
-            self.get_dataset()
+            self.get_dataset(self.params)
         return self.test_dataset
     def train(self):
         model = self.model_estimator(self.params)
