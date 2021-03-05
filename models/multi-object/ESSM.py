@@ -142,7 +142,7 @@ class ESSMModel(BaseEstimatorModel):
 
 def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
-              "optimizer": "adam", "data_path": "../data/ml-1m/"}
+              "optimizer": "adam", "data_path": "../data/ml-1m/", "model_dir": "../data/model/essm/"}
     m = ESSMModel(params=params)
     # m.test_run_dataset(params)
     m.train()
