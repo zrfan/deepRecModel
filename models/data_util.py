@@ -116,7 +116,7 @@ def get1MTrainDataOriginFeatures(path):
                             names=["userId", "gender", "age", "occupation", "zipcode"])
     print(user_info.shape)
     genderList = ["F", "M"]
-    ageList = [1, 18, 25, 35, 45, 50, 56]
+    ageList = ['1', '18', '25', '35', '45', '50', '56']
     occupationList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     zipcodeList = list(set(user_info["zipcode"].tolist()))
     # print("zipcodeList=", zipcodeList)
