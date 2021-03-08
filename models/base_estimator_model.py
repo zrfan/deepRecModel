@@ -50,5 +50,5 @@ class BaseEstimatorModel(object):
         if f=='train':
             dataset = tf.data.Dataset.from_tensor_slices(self.train_rating_info).map(decode, num_parallel_calls=2).repeat(self.params["epochs"])
         else:
-            dataset = tf.data.Dataset.from_tensor_slices(self.test_rating_info).map(decode, num_parallel_calls=2).repeat(self.params["epochs"])
+            dataset = tf.data.Dataset.from_tensor_slices(self.test_rating_info).map(decode, num_parallel_calls=2)
         return dataset
