@@ -1,6 +1,8 @@
 # deepRecModel
 ## require
 - tf.version=1.14.0
+- spark.version>=2.2.1
+- scala.version>=2.11.12
 ## python model Lib
 - models for recommendation system
 - use tf.Estimator：分布式训练接口
