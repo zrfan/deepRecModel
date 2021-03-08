@@ -13,7 +13,14 @@
     - FM系列：FM, FFM, deepFM, xDeepFM,
     - 多目标：ESSM，MMoE, PLE
 
-- to do list:
+
+
+## spark model Lib
+- FM-spark
+- FFM-spark
+- deepFM-spark
+
+##  to do list:
     - FM系列：NFM, AFM, BiFFM,  AoFFM, NeuralFFM
     - wide&deep：WDL
     - 双塔：DSSM
@@ -25,9 +32,4 @@
     - FNN
     - MIND
     - GNN : graphSage, pinSage
-
-## spark model Lib
-- FM-spark
-- FFM-spark
-- deepFM-spark
 
