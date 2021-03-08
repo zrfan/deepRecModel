@@ -4,24 +4,12 @@ import tensorflow as tf
 import os
 import sys
 sys.path.append("../")
-from models.data_util import get1MTrainDataOriginFeatures
 from models.base_estimator_model import BaseEstimatorModel
-from models.model_util import registerAllFeatureHashTable
+
 import random
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
-
-class EssmParams(object):
-    def __init__(self, params):
-        self.params = params
-        self.seed, self.sparse_feature_size, self.embedding_size = params["seed"], params["sparse_feature_size"], params["embedding_size"]
-    def initialize_weights(self):
-        weights_initializer = tf.glorot_normal_initializer(seed=self.seed)
-        bias_initializer = tf.constant(0,  dtype=tf.float32)
-        bias = tf.get_variable(name='bias', dtype=tf.float32, initializer=bias_initializer, shape=[1])
-        sparse_embeddings = tf.get_variable(name="sparse_embeddings", dtype=tf.float32, initializer=weights_initializer, shape=[self.sparse_feature_size, self.embedding_size])
-        multi_embeddings = tf.get_variable(name="multi_embeddings", dtype=tf.float32, initializer=weights_initializer, shape=[self.multi_feature_size, self.embedding_size])
-        return {"sparse_embddings": sparse_embeddings, "multi_embeddings": multi_embeddings}
-
+tf.set_random_seed(2019)
+tf.reset_default_graph()
 class ESSMModel(BaseEstimatorModel):
     def __init__(self, params):
         self.params = params
@@ -42,22 +30,13 @@ class ESSMModel(BaseEstimatorModel):
         occupation_column = tf.feature_column.embedding_column(occupation_column, 2)
         year_column = tf.feature_column.categorical_column_with_vocabulary_list("year", [str(x) for x in self.yearList])
         year_column = tf.feature_column.embedding_column(year_column, 3)
-        feature_columns = [gender_column, age_column, occupation_column, year_column]
+        # 多值特征
+        genres_column = tf.feature_column.categorical_column_with_vocabulary_list("genres", self.genresList)
+        genres_column = tf.feature_column.embedding_column(genres_column, 3)
+        feature_columns = [gender_column, age_column, occupation_column, year_column, genres_column]
         #
         input_layer = tf.feature_column.input_layer(features, feature_columns)
 
-        # sparse_feature_idx, multi_feature_idx = features["sparse_feature_idx"], features["multi_feature_idx"]
-        # all_weights = EssmParams(self.params).initialize_weights()
-        # sparse_embeddings, multi_embeddings = all_weights["sparse_embeddings"], all_weights["multi_embeddings"]
-        # # one-hot category -> embedding
-        # sparse_emb = tf.nn.embedding_lookup(sparse_embeddings, sparse_feature_idx)
-        # sparse_emb = tf.reshape(sparse_emb, shape=[-1, sparse_feature_size*embedding_size])
-        # # multi-hot category -> embedding
-        # multi_emb = tf.nn.embedding_lookup(multi_embeddings, multi_feature_idx)  # [batch, len, emb_size]
-        # sum_axis2 = tf.reduce_sum(multi_emb, axis=2)
-        # nonzero = tf.count_nonzero(sum_axis2, keepdims=True, dtype=float)
-        # multi_mean_emb = tf.div_no_nan(tf.reduce_sum(multi_emb, axis=1), nonzero)
-        #
         # # dense input dense
         # dense_input = tf.concat([sparse_emb, multi_mean_emb], axis=1, name="dense_vector")
         dense_input = tf.identity(input_layer, name="inputlayer")
@@ -96,36 +75,17 @@ class ESSMModel(BaseEstimatorModel):
             else:
                 train_op = None
         return tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=metrics, train_op=train_op)
-    def get_dataset(self, params):
-        userData, itemData, train_rating_info, test_rating_info, user_cols, movie_cols,ageList, occupationList, genresList, yearList\
-            = get1MTrainDataOriginFeatures(self.data_path)
-        self.ageList, self.occupationList, self.genresList, self.yearList = ageList, occupationList, genresList, yearList
 
-        print(itemData.head(10))
-        feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
-        self.params["feature_size"] = len(user_cols) + len(movie_cols)
-        all_feature_hashtable, ulen = registerAllFeatureHashTable(userData, itemData)
-        def decode(row):
-            userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), tf.cast(row[2], dtype=tf.float32)
-            userInfo, itemInfo = all_feature_hashtable.lookup(userId), all_feature_hashtable.lookup(tf.add(itemId, tf.constant(ulen, dtype=tf.int32)))
-            user_features = tf.reshape(tf.sparse.to_dense(tf.strings.split([userInfo], ","), default_value="0"), shape=[-1, 1])
-            item_features = tf.reshape(tf.sparse.to_dense(tf.strings.split([itemInfo], ","), default_value="0"), shape=[-1, 1])
-            genres = tf.reshape(tf.sparse.to_dense(tf.strings.split([item_features[0]], "|"), default_value="0"), shape=[-1])
-            #
-            feature_dict = {"item_features": item_features, "genres": genres, "year": item_features[1],
-                            "userId": userId, "itemId": itemId,
-                            "gender": user_features[0], "age": user_features[1], "occupation": user_features[2],
-                            "user_features": user_features}
-            label = tf.divide(label, 5)
-            label2 = tf.constant(random.random(), dtype=tf.float32)
-            return feature_dict, {"label": [[label]], "label2": [[label2]]}
 
-        train_dataset = tf.data.Dataset.from_tensor_slices(train_rating_info).map(decode, num_parallel_calls=2).repeat(params["epochs"])
-        test_dataset = tf.data.Dataset.from_tensor_slices(train_rating_info).map(decode, num_parallel_calls=2).repeat(params["epochs"])
-        self.train_dataset, self.test_dataset = train_dataset, test_dataset
-    def test_run_dataset(self, params):
-        self.get_dataset(params)
-        dataset = self.train_dataset.make_initializable_iterator()
+    def train(self):
+        model_estimator = self.model_estimator(self.params)
+        # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["inputlayer", "ctr_score"], every_n_iter=500)])
+        train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_input_fn(f="train"))
+        eval_spec = tf.estimator.EvalSpec(input_fn=lambda : self.train_input_fn(f="test"), steps=None, start_delay_secs=1000, throttle_secs=1200)
+        tf.estimator.train_and_evaluate(model_estimator, train_spec, eval_spec)
+    def test_run_dataset(self):
+        # self.get_dataset()
+        dataset = self.train_input_fn(f="train").make_initializable_iterator()
         features, labels = dataset.get_next()
         gender_column = tf.feature_column.categorical_column_with_vocabulary_list("gender", ['M', 'F'])
         gender_column = tf.feature_column.embedding_column(gender_column, 2)
@@ -137,31 +97,21 @@ class ESSMModel(BaseEstimatorModel):
         occupation_column = tf.feature_column.embedding_column(occupation_column, 2)
         year_column = tf.feature_column.categorical_column_with_vocabulary_list("year", [str(x) for x in self.yearList])
         year_column = tf.feature_column.embedding_column(year_column, 3)
-        feature_columns = [gender_column, age_column, occupation_column, year_column]
+        # 多值特征
+        genres_column = tf.feature_column.categorical_column_with_vocabulary_list("genres", self.genresList, default_value=-1)
+        genres_column = tf.feature_column.embedding_column(genres_column, 3)
+        # gender_column, age_column, occupation_column, year_column,
+        feature_columns = [genres_column]
         #
         input_layer = tf.feature_column.input_layer(features, feature_columns)
         print("*************input_layer=", input_layer)
         batch = 1
         with tf.train.MonitoredTrainingSession() as sess:
             sess.run(dataset.initializer)
-            while batch <= 20:
+            while batch <= 2000:
                 value = sess.run([features, input_layer])
                 print("value=", value)
                 batch += 1
-    def train_input_fn(self):
-        if not hasattr(self, 'train_dataset'):
-            self.get_dataset(self.params)
-        return self.train_dataset
-    def test_input_fn(self):
-        if not hasattr(self, 'test_dataset'):
-            self.get_dataset(self.params)
-        return self.test_dataset
-    def train(self):
-        model = self.model_estimator(self.params)
-        # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["inputlayer", "ctr_score"], every_n_iter=500)])
-        train_spec = tf.estimator.TrainSpec(input_fn=self.train_input_fn)
-        eval_spec = tf.estimator.EvalSpec(input_fn=self.test_input_fn, steps=None, start_delay_secs=1000, throttle_secs=1200)
-        tf.estimator.train_and_evaluate(model, train_spec, eval_spec)
 
 def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
