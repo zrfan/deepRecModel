@@ -14,18 +14,16 @@
     - 多目标：ESSM，MMoE, PLE
 
 - to do list:
-    - FM系列：BiFFM,  AoFFM, NeuralFFM
+    - FM系列：NFM, AFM, BiFFM,  AoFFM, NeuralFFM
     - wide&deep：WDL
     - 双塔：DSSM
     - 序列模型：DIN, DIEN, BST
+    - graph embedding: word2vec, item2vec, deepwalk, node2vec, EGES
     - DCN
-    - NFM
     - NCF
-    - AFM
     - PNN
     - FNN
-    - PLE
-    - graph embedding: word2vec, item2vec, deepwalk, node2vec, EGES
+    - MIND
     - GNN : graphSage, pinSage
 
 ## spark model Lib
