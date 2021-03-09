@@ -5,6 +5,7 @@ import os
 import sys
 sys.path.append("../")
 from models.base_estimator_model import BaseEstimatorModel
+from models.ConfigParam import ConfigParam
 
 import random
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
@@ -40,16 +41,16 @@ class ESSMModel(BaseEstimatorModel):
         # # dense input dense
         # dense_input = tf.concat([sparse_emb, multi_mean_emb], axis=1, name="dense_vector")
         dense_input = tf.identity(input_layer, name="inputlayer")
-        len_layers = len(params["hidden_units"])
+        len_layers = len(params.hidden_units)
         with tf.variable_scope("ctr_deep"):
-            dense_ctr = tf.layers.dense(dense_input, units=params["hidden_units"][0], activation=tf.nn.relu)
+            dense_ctr = tf.layers.dense(dense_input, units=params.hidden_units[0], activation=tf.nn.relu)
             for i in range(1, len_layers):
-                dense_ctr = tf.layers.dense(dense_ctr, units=params["hidden_units"][i], activation=tf.nn.relu)
+                dense_ctr = tf.layers.dense(dense_ctr, units=params.hidden_units[i], activation=tf.nn.relu)
             ctr_out = tf.layers.dense(dense_ctr, units=1)
         with tf.variable_scope("cvr_deep"):
-            dense_cvr = tf.layers.dense(dense_input, units=params["hidden_units"][0], activation=tf.nn.relu)
+            dense_cvr = tf.layers.dense(dense_input, units=params.hidden_units[0], activation=tf.nn.relu)
             for i in range(1, len_layers):
-                dense_cvr = tf.layers.dense(dense_cvr, units=params["hidden_units"][i], activation=tf.nn.relu)
+                dense_cvr = tf.layers.dense(dense_cvr, units=params.hidden_units[i], activation=tf.nn.relu)
             cvr_output = tf.layers.dense(dense_cvr, units=1)
         ctr_score = tf.identity(tf.nn.sigmoid(ctr_out), name="ctr_score")
         cvr_score = tf.identity(tf.nn.sigmoid(cvr_output), name="cvr_score")
@@ -70,7 +71,7 @@ class ESSMModel(BaseEstimatorModel):
             ctcvr_loss = tf.reduce_mean(tf.losses.log_loss(labels=ctcvr_labels, predictions=ctcvr_score))
             loss = ctr_loss + ctcvr_loss
             if mode == tf.estimator.ModeKeys.TRAIN:
-                optimizer = tf.train.AdamOptimizer(params["learning_rate"])
+                optimizer = tf.train.AdamOptimizer(params.learning_rate)
                 train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
             else:
                 train_op = None
@@ -116,7 +117,7 @@ class ESSMModel(BaseEstimatorModel):
 def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
               "optimizer": "adam", "data_path": "../data/ml-1m/", "model_dir": "../data/model/essm/", "hidden_units":[8]}
-    m = ESSMModel(params=params)
+    m = ESSMModel(configParam=ConfigParam(params))
     # m.test_run_dataset(params)
     m.train()
 

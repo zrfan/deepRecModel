@@ -7,6 +7,7 @@ sys.path.append("../")
 from models.data_util import get1MTrainDataOriginFeatures
 from models.base_estimator_model import BaseEstimatorModel
 from models.model_util import registerAllFeatureHashTable
+from models.ConfigParam import ConfigParam
 import random
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
 tf.set_random_seed(2019)
@@ -14,8 +15,9 @@ tf.reset_default_graph()
 
 
 class MMoEModel(BaseEstimatorModel):
-    def __init__(self, params):
-        self.params = params
+    def __init__(self, configParam):
+        self.params = configParam
+        print("get params=", self.params)
     def model_fn(self, features, labels, mode, params):
         gender_column = tf.feature_column.categorical_column_with_vocabulary_list("gender", ['M', 'F'])
         gender_column = tf.feature_column.embedding_column(gender_column, 2)
@@ -30,7 +32,7 @@ class MMoEModel(BaseEstimatorModel):
         feature_columns = [gender_column, age_column, occupation_column, year_column]
         # dense input
         input_layer = tf.feature_column.input_layer(features, feature_columns)
-        dense_input = tf.identity(input_layer, name="input_layer")
+        dense_input = tf.identity(input_layer, name="dense_input")
         # experts
         experts_weight = tf.get_variable(name="experts_weight", dtype=tf.float32, shape=(dense_input.get_shape()[1], params.experts_units, params.experts_num),
                                          initializer=tf.contrib.layers.xavier_initializer())
@@ -38,7 +40,7 @@ class MMoEModel(BaseEstimatorModel):
                                       initializer=tf.contrib.layers.xavier_initializer())
         # gates
         gate1_weight = tf.get_variable(name="gate1_weight", dtype=tf.float32, shape=(dense_input.get_shape()[1], params.experts_num),
-                                       initializer=tf.contrib.layers.xavier_initializer)
+                                       initializer=tf.contrib.layers.xavier_initializer())
         gate1_bias = tf.get_variable(name="gate1_bias", dtype=tf.float32, shape=(params.experts_num),
                                      initializer=tf.contrib.layers.xavier_initializer())
         gate2_weight = tf.get_variable(name="gate2_weight", dtype=tf.float32, shape=(dense_input.get_shape()[1], params.experts_num),
@@ -46,7 +48,7 @@ class MMoEModel(BaseEstimatorModel):
         gate2_bias = tf.get_variable(name="gate2_bias", dtype=tf.float32, shape=(params.experts_num),
                                      initializer=tf.contrib.layers.xavier_initializer())
         # f_{i}(x) = activation(W_{i} * x + b), where activate is ReLU according to the paper
-        experts_output = tf.tensordot(dense_input, experts_weight, axes=1)
+        experts_output = tf.tensordot(dense_input, experts_weight, axes=1, name="expert_outputs")
         use_expert_bias = True
         if use_expert_bias:
             experts_output = tf.add(experts_output, expert_bias)
@@ -108,15 +110,16 @@ class MMoEModel(BaseEstimatorModel):
 
     def train(self):
         model_estimator = self.model_estimator(self.params)
-        # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["input_layer", "ctr_score"], every_n_iter=500)])
-        train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_input_fn(f="train"), hooks=[tf.train.LoggingTensorHook(["input_layer", "ctr_score"], every_n_iter=500)])
+        # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["input_layer", "ctr_score"], every_n_iter=500)])  ## input_layer
+        train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_input_fn(f="train"), hooks=[tf.train.LoggingTensorHook(["dense_input", "expert_outputs", "ctr_score"], every_n_iter=500)])
         eval_spec = tf.estimator.EvalSpec(input_fn=lambda : self.train_input_fn(f="test"), steps=None, start_delay_secs=1000, throttle_secs=1200)
         tf.estimator.train_and_evaluate(model_estimator, train_spec, eval_spec)
 
 def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
-              "optimizer": "adam", "data_path": "../data/ml-1m/", "model_dir": "../data/model/essm/", "hidden_units":[8]}
-    m = MMoEModel(params=params)
+              "optimizer": "adam", "data_path": "../data/ml-1m/", "model_dir": "../data/model/mmoe/", "hidden_units":[8],
+              "experts_units": 2, "experts_num":2, "label1_weight": 0.5, "label2_weight": 0.5}
+    m = MMoEModel(configParam=ConfigParam(params))
     m.train()
 
 

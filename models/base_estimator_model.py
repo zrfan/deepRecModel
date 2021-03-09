@@ -18,17 +18,17 @@ class BaseEstimatorModel(object):
         session_config.gpu_options.per_process_gpu_memory_fraction = 0.8
         config = tf.estimator.RunConfig(keep_checkpoint_max=2, log_step_count_steps=500, save_summary_steps=50,
                                         save_checkpoints_steps=50000).replace(session_config=session_config)
-        model_estimator = tf.estimator.Estimator(model_fn=self.model_fn, model_dir=params["model_dir"], params=params, config=config)
+        model_estimator = tf.estimator.Estimator(model_fn=self.model_fn, model_dir=params.model_dir, params=params, config=config)
         return model_estimator
 
     def get_dataset(self):
         self.userData, self.itemData, self.train_rating_info, self.test_rating_info, self.user_cols, self.movie_cols,ageList, occupationList, genresList, yearList \
-            = get1MTrainDataOriginFeatures(self.params["data_path"])
+            = get1MTrainDataOriginFeatures(self.params.data_path)
         self.ageList, self.occupationList, self.genresList, self.yearList = ageList, occupationList, genresList, yearList
 
         print(self.itemData.head(10))
         feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
-        self.params["feature_size"] = len(self.user_cols) + len(self.movie_cols)
+        self.params.feature_size = len(self.user_cols) + len(self.movie_cols)
         self.all_feature_hashtable, self.ulen = registerAllFeatureHashTable(self.userData, self.itemData)
 
     def train_input_fn(self, f="train"):
@@ -48,7 +48,7 @@ class BaseEstimatorModel(object):
             label2 = tf.constant(random.random(), dtype=tf.float32)
             return feature_dict, {"label": [[label]], "label2": [[label2]]}
         if f=='train':
-            dataset = tf.data.Dataset.from_tensor_slices(self.train_rating_info).map(decode, num_parallel_calls=2).repeat(self.params["epochs"])
+            dataset = tf.data.Dataset.from_tensor_slices(self.train_rating_info).map(decode, num_parallel_calls=2).repeat(self.params.epochs)
         else:
             dataset = tf.data.Dataset.from_tensor_slices(self.test_rating_info).map(decode, num_parallel_calls=2)
         return dataset
