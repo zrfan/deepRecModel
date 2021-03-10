@@ -13,7 +13,9 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
 tf.set_random_seed(2019)
 tf.reset_default_graph()
 
-
+##
+# Modeling Task Relationships in Multi-task Learning with Multi-gate Mixture-of-Experts
+##
 class MMoEModel(BaseEstimatorModel):
     def __init__(self, configParam):
         self.params = configParam
@@ -29,7 +31,10 @@ class MMoEModel(BaseEstimatorModel):
         occupation_column = tf.feature_column.embedding_column(occupation_column, 2)
         year_column = tf.feature_column.categorical_column_with_vocabulary_list("year", [str(x) for x in self.yearList])
         year_column = tf.feature_column.embedding_column(year_column, 3)
-        feature_columns = [gender_column, age_column, occupation_column, year_column]
+        # 多值特征
+        genres_column = tf.feature_column.categorical_column_with_vocabulary_list("genres", self.genresList)
+        genres_column = tf.feature_column.embedding_column(genres_column, 3)
+        feature_columns = [gender_column, age_column, occupation_column, year_column, genres_column]
         # dense input
         input_layer = tf.feature_column.input_layer(features, feature_columns)
         dense_input = tf.identity(input_layer, name="dense_input")

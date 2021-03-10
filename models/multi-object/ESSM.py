@@ -11,6 +11,10 @@ import random
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
 tf.set_random_seed(2019)
 tf.reset_default_graph()
+
+##
+# Entire Space Multi-Task Model: An Effective Approach for Estimating Post-Click Conversion Rate
+##
 class ESSMModel(BaseEstimatorModel):
     def __init__(self, params):
         self.params = params
