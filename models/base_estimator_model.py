@@ -3,7 +3,7 @@
 import tensorflow as tf
 import abc
 from models.model_util import registerAllFeatureHashTable
-from models.data_util import get1MTrainDataOriginFeatures
+from models.data_util import get1MTrainDataOriginFeatures, get1MTrainData
 import random
 
 class BaseEstimatorModel(object):
@@ -21,7 +21,7 @@ class BaseEstimatorModel(object):
         model_estimator = tf.estimator.Estimator(model_fn=self.model_fn, model_dir=params.model_dir, params=params, config=config)
         return model_estimator
 
-    def get_dataset(self):
+    def get_origin_dataset(self):
         self.userData, self.itemData, self.train_rating_info, self.test_rating_info, self.user_cols, self.movie_cols,ageList, occupationList, genresList, yearList \
             = get1MTrainDataOriginFeatures(self.params.data_path)
         self.ageList, self.occupationList, self.genresList, self.yearList = ageList, occupationList, genresList, yearList
@@ -31,8 +31,8 @@ class BaseEstimatorModel(object):
         self.params.feature_size = len(self.user_cols) + len(self.movie_cols)
         self.all_feature_hashtable, self.ulen = registerAllFeatureHashTable(self.userData, self.itemData)
 
-    def train_input_fn(self, f="train"):
-        self.get_dataset()
+    def train_origin_input_fn(self, f="train"):
+        self.get_origin_dataset()
         def decode(row):
             userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), tf.cast(row[2], dtype=tf.float32)
             userInfo, itemInfo = self.all_feature_hashtable.lookup(userId), self.all_feature_hashtable.lookup(tf.add(itemId, tf.constant(self.ulen, dtype=tf.int32)))
@@ -52,3 +52,28 @@ class BaseEstimatorModel(object):
         else:
             dataset = tf.data.Dataset.from_tensor_slices(self.test_rating_info).map(decode, num_parallel_calls=2)
         return dataset
+    def get_onehot_dataset(self):
+        userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
+        self.params["feature_size"] = len(user_cols) + len(movie_cols) - 2
+
+        def gen():
+            for idx, row in rating_info.iterrows():
+                userId, itemId = int(row["userId"]), int(row["movieId"])
+                userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
+                trainData = userInfo.tolist() + movieInfo.tolist()
+                feature_index = list(filter(lambda x: x[0] == 1, zip(trainData, list(range(1, len(trainData) + 1)))))
+                feature_index = list(map(lambda x: x[1], feature_index))
+                feature_values = [1 for _ in range(len(feature_index))]
+                y = float(row["ratings"]) / 5
+                # print("feature_indx", feature_index, "features len", len(feature_index))
+                feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
+                yield (feature_dict, y)
+
+        self.train_dataset = tf.data.Dataset.from_generator(gen,
+                                                            ({"feature_idx": tf.int64, "feature_values": tf.float32}, tf.float32),
+                                                            ({"feature_idx": tf.TensorShape([None]),
+                                                              "feature_values": tf.TensorShape([None])},
+                                                             tf.TensorShape([]))) \
+            .prefetch(self.params["batch_size"] * 10) \
+            .padded_batch(self.params["batch_size"],padded_shapes=({"feature_idx": [None], "feature_values": [None]}, []), padding_values=-1)
+        return self.train_dataset
