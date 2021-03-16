@@ -16,9 +16,9 @@ tf.reset_default_graph()
 # Entire Space Multi-Task Model: An Effective Approach for Estimating Post-Click Conversion Rate
 ##
 class ESSMModel(BaseEstimatorModel):
-    def __init__(self, params):
-        self.params = params
-        self.data_path = params["data_path"]
+    def __init__(self, configParam):
+        self.params = configParam
+        self.data_path = configParam.data_path
     def model_fn(self, features, labels, mode, params):
         # sparse_feature_size, multi_feature_size, embedding_size = self.params["sparse_feature_size"], self.params["multi_feature_size"], self.params["embedding_size"]
         # batch_size, learning_rate, optimizer_used = self.params["batch_size"], self.params["learning_rate"], self.params["optimizer"]
@@ -90,7 +90,7 @@ class ESSMModel(BaseEstimatorModel):
         tf.estimator.train_and_evaluate(model_estimator, train_spec, eval_spec)
     def test_run_dataset(self):
         # self.get_dataset()
-        dataset = self.train_input_fn(f="train").make_initializable_iterator()
+        dataset = self.train_origin_input_fn(f="train").make_initializable_iterator()
         features, labels = dataset.get_next()
         gender_column = tf.feature_column.categorical_column_with_vocabulary_list("gender", ['M', 'F'])
         gender_column = tf.feature_column.embedding_column(gender_column, 2)
@@ -106,7 +106,7 @@ class ESSMModel(BaseEstimatorModel):
         genres_column = tf.feature_column.categorical_column_with_vocabulary_list("genres", self.genresList, default_value=-1)
         genres_column = tf.feature_column.embedding_column(genres_column, 3)
         # gender_column, age_column, occupation_column, year_column,
-        feature_columns = [genres_column]
+        feature_columns = [gender_column, age_column, occupation_column, year_column, genres_column]
         #
         input_layer = tf.feature_column.input_layer(features, feature_columns)
         print("*************input_layer=", input_layer)
@@ -122,8 +122,8 @@ def main(_):
     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
               "optimizer": "adam", "data_path": "../data/ml-1m/", "model_dir": "../data/model/essm/", "hidden_units":[8]}
     m = ESSMModel(configParam=ConfigParam(params))
-    # m.test_run_dataset(params)
-    m.train()
+    m.test_run_dataset()
+    # m.train()
 
 
 if __name__ == '__main__':

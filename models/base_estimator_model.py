@@ -2,7 +2,7 @@
 # tf1.14
 import tensorflow as tf
 import abc
-from models.model_util import registerAllFeatureHashTable
+from models.model_util import registerAllFeatureHashTable, registerAllFeatureIdxHashTable
 from models.data_util import get1MTrainDataOriginFeatures, get1MTrainData
 import random
 
@@ -27,12 +27,13 @@ class BaseEstimatorModel(object):
         self.ageList, self.occupationList, self.genresList, self.yearList = ageList, occupationList, genresList, yearList
 
         print(self.itemData.head(10))
-        feature_dict = {"gender": 0, "age": 0, "occupation": 0, "genres": 1, "year": 1}
+        self.feature_dict = {"gender": ["F", "M"], "age": self.ageList, "occupation": self.occupationList, "genres": self.genresList, "year": self.yearList}
         self.params.feature_size = len(self.user_cols) + len(self.movie_cols)
         self.all_feature_hashtable, self.ulen = registerAllFeatureHashTable(self.userData, self.itemData)
 
     def train_origin_input_fn(self, f="train"):
-        self.get_origin_dataset()
+        if not hasattr(self, 'all_feature_hashtable'):
+            self.get_origin_dataset()
         def decode(row):
             userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), tf.cast(row[2], dtype=tf.float32)
             userInfo, itemInfo = self.all_feature_hashtable.lookup(userId), self.all_feature_hashtable.lookup(tf.add(itemId, tf.constant(self.ulen, dtype=tf.int32)))
@@ -52,28 +53,35 @@ class BaseEstimatorModel(object):
         else:
             dataset = tf.data.Dataset.from_tensor_slices(self.test_rating_info).map(decode, num_parallel_calls=2)
         return dataset
-    def get_onehot_dataset(self):
-        userData, itemData, rating_info, user_cols, movie_cols = get1MTrainData(self.data_path)
-        self.params["feature_size"] = len(user_cols) + len(movie_cols) - 2
+    def train_onehot_input_fn(self, f="train"):
+        if not hasattr(self, "onehot_feature_hashtable"):
+            userData, itemData, self.onehot_train_rating_info, self.onehot_test_rating_info, user_cols, movie_cols = get1MTrainData(self.params.data_path)
+            self.params.feature_size = len(user_cols) + len(movie_cols)
+            print("user_cols=", user_cols, " movie_cols=", movie_cols)
+            self.onehot_feature_hashtable, self.user_feature_len = registerAllFeatureIdxHashTable(userData, itemData)
 
-        def gen():
-            for idx, row in rating_info.iterrows():
-                userId, itemId = int(row["userId"]), int(row["movieId"])
-                userInfo, movieInfo = userData.loc[userId, :], itemData.loc[itemId, :]
-                trainData = userInfo.tolist() + movieInfo.tolist()
-                feature_index = list(filter(lambda x: x[0] == 1, zip(trainData, list(range(1, len(trainData) + 1)))))
-                feature_index = list(map(lambda x: x[1], feature_index))
-                feature_values = [1 for _ in range(len(feature_index))]
-                y = float(row["ratings"]) / 5
-                # print("feature_indx", feature_index, "features len", len(feature_index))
-                feature_dict = {"feature_idx": feature_index, "feature_values": feature_values}
-                yield (feature_dict, y)
+        def decode(row):
+            userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), row[2]
+            userInfo = self.onehot_feature_hashtable.lookup(userId)
+            itemInfo = self.onehot_feature_hashtable.lookup(tf.add(itemId, tf.constant(self.user_feature_len, dtype=tf.int32)))
+            all_features = tf.strings.to_number(tf.reshape(tf.sparse.to_dense(tf.string_split([userInfo, itemInfo], ","),
+                                                                              default_value="0"),
+                                                           [-1]),
+                                                out_type=tf.int32)
+            feature_index = all_features
+            feature_values = tf.ones_like(feature_index, dtype=tf.float32)
+            label = tf.div(tf.cast(label, tf.float32), 5)
+            feature_dict = {"feature_idx": feature_index, "feature_values": feature_values, "userInfo": userInfo,
+                            "itemInfo": itemInfo, "itemId": itemId, "userId": userId}
+            return (feature_dict, label)
+        shape = {"feature_idx": [None], "feature_values": [None],
+                 "userInfo": [], "itemInfo": [], "userId": [], "itemId": []}
+        if f == 'train':
+            dataset = tf.data.Dataset.from_tensor_slices(self.onehot_train_rating_info).map(decode, num_parallel_calls=2)\
+                .repeat(self.params.epochs)\
+                .padded_batch(self.params.batch_size, padded_shapes=(shape, []))
+        else:
+            dataset = tf.data.Dataset.from_tensor_slices(self.onehot_test_rating_info).map(decode, num_parallel_calls=2) \
+                .padded_batch(self.params.batch_size, padded_shapes=(shape, []))
 
-        self.train_dataset = tf.data.Dataset.from_generator(gen,
-                                                            ({"feature_idx": tf.int64, "feature_values": tf.float32}, tf.float32),
-                                                            ({"feature_idx": tf.TensorShape([None]),
-                                                              "feature_values": tf.TensorShape([None])},
-                                                             tf.TensorShape([]))) \
-            .prefetch(self.params["batch_size"] * 10) \
-            .padded_batch(self.params["batch_size"],padded_shapes=({"feature_idx": [None], "feature_values": [None]}, []), padding_values=-1)
-        return self.train_dataset
+        return dataset
