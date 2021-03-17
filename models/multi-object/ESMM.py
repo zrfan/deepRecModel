@@ -15,7 +15,7 @@ tf.reset_default_graph()
 ##
 # Entire Space Multi-Task Model: An Effective Approach for Estimating Post-Click Conversion Rate
 ##
-class ESSMModel(BaseEstimatorModel):
+class ESMMModel(BaseEstimatorModel):
     def __init__(self, configParam):
         self.params = configParam
         self.data_path = configParam.data_path
@@ -61,33 +61,45 @@ class ESSMModel(BaseEstimatorModel):
         ctcvr_score = tf.identity(ctr_score*cvr_score, name="ctcvr_score")
         ctr_pow, cvr_pow = 0.5, 1
         score = tf.multiply(tf.pow(ctr_score, ctr_pow), tf.pow(cvr_score, cvr_pow))
-        score = tf.identity(score, name="score")
-        if mode == tf.estimator.ModeKeys.PREDICT:
-            return tf.estimator.EstimatorSpec(mode=mode, predictions=score)
-        else :
-            ctr_labels, ctcvr_labels = tf.identity(labels["label"], name="ctr_labels"), tf.identity(labels["label2"], name="ctcvr_labels")
-            print("***********ctr_labels=", ctr_labels)
-            print("***********ctr_scores=", ctr_score)
-            ctr_auc = tf.metrics.auc(labels=ctr_labels, predictions=ctr_score, name="ctr_auc")
-            ctcvr_auc = tf.metrics.auc(labels=ctcvr_labels, predictions=ctcvr_score, name="ctcvr_auc")
-            metrics = {"ctr_auc": ctr_auc, "ctcvr_auc": ctcvr_auc}
-            ctr_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels=ctr_labels, logits=ctr_out))
-            ctcvr_loss = tf.reduce_mean(tf.losses.log_loss(labels=ctcvr_labels, predictions=ctcvr_score))
-            loss = ctr_loss + ctcvr_loss
-            if mode == tf.estimator.ModeKeys.TRAIN:
-                optimizer = tf.train.AdamOptimizer(params.learning_rate)
-                train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
-            else:
-                train_op = None
-        return tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=metrics, train_op=train_op)
+        predicts = tf.identity(score, name="score")
+        ctr_labels, ctcvr_labels = tf.identity(labels["label"], name="ctr_labels"), tf.identity(labels["label2"], name="ctcvr_labels")
+        print("***********ctr_labels=", ctr_labels)
+        print("***********ctr_scores=", ctr_score)
+        ctr_auc = tf.metrics.auc(labels=ctr_labels, predictions=ctr_score, name="ctr_auc")
+        ctcvr_auc = tf.metrics.auc(labels=ctcvr_labels, predictions=ctcvr_score, name="ctcvr_auc")
+        metrics = {"ctr_auc": ctr_auc, "ctcvr_auc": ctcvr_auc}
+        ctr_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels=ctr_labels, logits=ctr_out))
+        ctcvr_loss = tf.reduce_mean(tf.losses.log_loss(labels=ctcvr_labels, predictions=ctcvr_score))
+        loss = ctr_loss + ctcvr_loss
+        optimizer = tf.train.AdamOptimizer(params.learning_rate)
+        train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
+        # if mode == tf.estimator.ModeKeys.PREDICT:
+        #     return tf.estimator.EstimatorSpec(mode=mode, predictions=score)
+        # else:
+        #     if mode == tf.estimator.ModeKeys.TRAIN:
+        #     else:
+        #         train_op = None
+        #     return tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=metrics, train_op=train_op)
+        # metric
+        eval_metric_ops = {"auc": tf.metrics.auc(labels["label"], predicts)}
+        predictions = {"prob": predicts}
 
+        export_outputs = {tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY: tf.estimator.export.PredictOutput(predictions)}
+
+        if mode == tf.estimator.ModeKeys.PREDICT:
+            return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, export_outputs=export_outputs)
+        elif mode == tf.estimator.ModeKeys.EVAL:
+            return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, loss=loss, eval_metric_ops=eval_metric_ops)
+        elif mode == tf.estimator.ModeKeys.TRAIN:
+            return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, loss=loss, eval_metric_ops=eval_metric_ops, train_op=train_op)
 
     def train(self):
-        model_estimator = self.model_estimator(self.params)
-        # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["inputlayer", "ctr_score"], every_n_iter=500)])
-        train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_input_fn(f="train"))
-        eval_spec = tf.estimator.EvalSpec(input_fn=lambda : self.train_input_fn(f="test"), steps=None, start_delay_secs=1000, throttle_secs=1200)
-        tf.estimator.train_and_evaluate(model_estimator, train_spec, eval_spec)
+        with tf.contrib.tfprof.ProfileContext(self.params.model_dir+"/../profile/") as pctx:
+            model_estimator = self.model_estimator(self.params)
+            # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["inputlayer", "ctr_score"], every_n_iter=500)])
+            train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_origin_input_fn(f="train"), max_steps=100)
+            eval_spec = tf.estimator.EvalSpec(input_fn=lambda : self.train_origin_input_fn(f="test"), steps=None, start_delay_secs=1000, throttle_secs=1200)
+            tf.estimator.train_and_evaluate(model_estimator, train_spec, eval_spec)
     def test_run_dataset(self):
         # self.get_dataset()
         dataset = self.train_origin_input_fn(f="train").make_initializable_iterator()
@@ -119,11 +131,11 @@ class ESSMModel(BaseEstimatorModel):
                 batch += 1
 
 def main(_):
-    params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
+    params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":10,
               "optimizer": "adam", "data_path": "../data/ml-1m/", "model_dir": "../data/model/essm/", "hidden_units":[8]}
-    m = ESSMModel(configParam=ConfigParam(params))
-    m.test_run_dataset()
-    # m.train()
+    m = ESMMModel(configParam=ConfigParam(params))
+    # m.test_run_dataset()
+    m.train()
 
 
 if __name__ == '__main__':

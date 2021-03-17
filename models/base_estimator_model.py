@@ -13,7 +13,7 @@ class BaseEstimatorModel(object):
     def model_fn(self):
         raise NotImplementedError
     def model_estimator(self, params):
-        # tf.reset_default_graph()
+        tf.reset_default_graph()
         session_config = tf.ConfigProto(log_device_placement=False, device_count={'GPU': 0})
         session_config.gpu_options.per_process_gpu_memory_fraction = 0.8
         config = tf.estimator.RunConfig(keep_checkpoint_max=2, log_step_count_steps=500, save_summary_steps=50,
@@ -32,8 +32,8 @@ class BaseEstimatorModel(object):
         self.all_feature_hashtable, self.ulen = registerAllFeatureHashTable(self.userData, self.itemData)
 
     def train_origin_input_fn(self, f="train"):
-        if not hasattr(self, 'all_feature_hashtable'):
-            self.get_origin_dataset()
+        # if not hasattr(self, 'all_feature_hashtable'):
+        self.get_origin_dataset()
         def decode(row):
             userId, itemId, label = tf.cast(row[0], dtype=tf.int32), tf.cast(row[1], dtype=tf.int32), tf.cast(row[2], dtype=tf.float32)
             userInfo, itemInfo = self.all_feature_hashtable.lookup(userId), self.all_feature_hashtable.lookup(tf.add(itemId, tf.constant(self.ulen, dtype=tf.int32)))
@@ -48,6 +48,9 @@ class BaseEstimatorModel(object):
             label = tf.divide(label, 5)
             label2 = tf.constant(random.random(), dtype=tf.float32)
             return feature_dict, {"label": [[label]], "label2": [[label2]]}
+        # if not hasattr(self, "train_dataset"):
+        #     self.train_dataset = tf.data.Dataset.from_tensor_slices(self.train_rating_info).map(decode, num_parallel_calls=2).repeat(self.params.epochs)
+        #     self.test_dataset = tf.data.Dataset.from_tensor_slices(self.test_rating_info).map(decode, num_parallel_calls=2)
         if f=='train':
             dataset = tf.data.Dataset.from_tensor_slices(self.train_rating_info).map(decode, num_parallel_calls=2).repeat(self.params.epochs)
         else:

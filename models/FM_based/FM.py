@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*
 # tf1.14
 from __future__ import division
+import tensorflow as tf
 from math import exp
 from numpy import *
-from random import normalvariate  # 正态分布
-from sklearn import preprocessing
-import numpy as np
-from data_util import get1MTrainData
-import tensorflow as tf
+import abc
+from .data_util import get1MTrainData
+
 import os
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
