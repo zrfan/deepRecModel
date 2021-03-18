@@ -94,10 +94,11 @@ class ESMMModel(BaseEstimatorModel):
             return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, loss=loss, eval_metric_ops=eval_metric_ops, train_op=train_op)
 
     def train(self):
+        summary_hook = tf.train.SummarySaveHook(100, output_dir=self.params.model_dir+"/../summary/", summary_op=tf.summary.merge_all())
         with tf.contrib.tfprof.ProfileContext(self.params.model_dir+"/../profile/") as pctx:
             model_estimator = self.model_estimator(self.params)
             # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["inputlayer", "ctr_score"], every_n_iter=500)])
-            train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_origin_input_fn(f="train"), max_steps=100)
+            train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_origin_input_fn(f="train"), max_steps=100, hooks=[summary_hook])
             eval_spec = tf.estimator.EvalSpec(input_fn=lambda : self.train_origin_input_fn(f="test"), steps=None, start_delay_secs=1000, throttle_secs=1200)
             tf.estimator.train_and_evaluate(model_estimator, train_spec, eval_spec)
     def test_run_dataset(self):
