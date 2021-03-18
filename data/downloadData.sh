@@ -30,5 +30,5 @@ wget https://storage.googleapis.com/tfhub-modules/google/albert_base/3.tar.gz
 wget https://storage.googleapis.com/tfhub-modules/google/albert_large/3.tar.gz
 
 # Amazon data
-
+#https://github.com/zhougr1993/DeepInterestNetwork/tree/master/utils
 
