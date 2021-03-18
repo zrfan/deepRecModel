@@ -16,3 +16,6 @@ tf.reset_default_graph()
 class WideDeep(BaseEstimatorModel):
     def __init__(self, configParam):
         self.params = configParam
+        self.data_path = configParam["data_path"]
+    def model_fn(self, features, labels, mode, params):
+

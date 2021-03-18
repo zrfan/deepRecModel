@@ -71,6 +71,7 @@ class ESMMModel(BaseEstimatorModel):
         ctr_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels=ctr_labels, logits=ctr_out))
         ctcvr_loss = tf.reduce_mean(tf.losses.log_loss(labels=ctcvr_labels, predictions=ctcvr_score))
         loss = ctr_loss + ctcvr_loss
+        tf.summary.scalar("loss", loss)
         optimizer = tf.train.AdamOptimizer(params.learning_rate)
         train_op = optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
         # if mode == tf.estimator.ModeKeys.PREDICT:
@@ -95,11 +96,11 @@ class ESMMModel(BaseEstimatorModel):
 
     def train(self):
         # summary_hook = tf.train.SummarySaveHook(100, output_dir=self.params.model_dir+"/../summary/", summary_op=tf.summary.merge_all())
-        profile_hook = tf.estimator.ProfilerHook(save_steps=5000, output_dir=self.params.model_dir+"/../profile2/")
+        profile_hook = tf.estimator.ProfilerHook(save_steps=5000, output_dir=self.params.model_dir)
         # with tf.contrib.tfprof.ProfileContext(self.params.model_dir+"/../profile/") as pctx:
         model_estimator = self.model_estimator(self.params)
         # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["inputlayer", "ctr_score"], every_n_iter=500)])
-        train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_origin_input_fn(f="train"), max_steps=50000, hooks=[ profile_hook])
+        train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_origin_input_fn(f="train"),  hooks=[profile_hook])
         eval_spec = tf.estimator.EvalSpec(input_fn=lambda : self.train_origin_input_fn(f="test"), steps=None, start_delay_secs=1000, throttle_secs=1200)
         tf.estimator.train_and_evaluate(model_estimator, train_spec, eval_spec)
     def test_run_dataset(self):
@@ -133,7 +134,7 @@ class ESMMModel(BaseEstimatorModel):
                 batch += 1
 
 def main(_):
-    params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 128, "learning_rate": 0.001,"epochs":10,
+    params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 128, "learning_rate": 0.001,"epochs":200,
               "optimizer": "adam", "data_path": "../data/ml-1m/", "model_dir": "../data/model/essm/", "hidden_units":[8]}
     m = ESMMModel(configParam=ConfigParam(params))
     # m.test_run_dataset()
