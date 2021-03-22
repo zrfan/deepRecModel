@@ -9,7 +9,7 @@ from models.ConfigParam import ConfigParam
 
 import random
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
-tf.set_random_seed(2019)
+tf.set_random_seed(2020)
 tf.reset_default_graph()
 
 ##

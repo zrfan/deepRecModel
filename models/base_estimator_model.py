@@ -13,7 +13,7 @@ class BaseEstimatorModel(object):
     def model_fn(self):
         raise NotImplementedError
     def model_estimator(self, params):
-        tf.reset_default_graph()
+        # tf.reset_default_graph()
         session_config = tf.ConfigProto(log_device_placement=False, device_count={'GPU': 0})
         session_config.gpu_options.per_process_gpu_memory_fraction = 0.8
         config = tf.estimator.RunConfig(keep_checkpoint_max=2, log_step_count_steps=500, save_summary_steps=150,
