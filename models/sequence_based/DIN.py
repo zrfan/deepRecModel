@@ -12,6 +12,9 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
 tf.set_random_seed(2020)
 tf.reset_default_graph()
 
+##
+# Deep Interest Network for Click-Through Rate Prediction
+##
 class DINModel(BaseEstimatorModel):
     def __init__(self, configParam):
         self.params = configParam
