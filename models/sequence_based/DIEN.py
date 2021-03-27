@@ -102,6 +102,7 @@ class DIENModel(BaseEstimatorModel):
         neg = alphas * (input - abs(input)) * 0.5
         return neg + pos
     def din_fcn_attention(self, query, facts, attention_size, mask, stag="null", mode="sum", softmax_stag=1, time_major=False, return_alphas=False, forCnn=False):
+        pass
 
 class Model_Gru_att_Gru(DIENModel):
     def __init__(self, configParams):
@@ -112,7 +113,7 @@ class Model_Gru_att_Gru(DIENModel):
                                          sequence_length=self.sequence_leng, dtype=tf.float32, scope="gru1")
         # Attention layer
         with tf.name_scope("attention_layer_1"):
-            att_outputs, alphas = din_fcn_attention(self.item_emb, rnn_outputs, self.params.attention_size, self.mask,
+            att_outputs, alphas = self.din_fcn_attention(self.item_emb, rnn_outputs, self.params.attention_size, self.mask,
                                                     softmax_stag=1, stag='1_1', mode='LIST', return_alphas=True)
         with tf.name_scope("rnn_2"):
             rnn_outputs2, final_state2 = dynamic_rnn(GRUCell(self.params.hidden_size), inputs=att_outputs,
