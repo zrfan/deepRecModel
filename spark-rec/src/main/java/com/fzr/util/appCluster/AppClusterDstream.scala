@@ -1,5 +1,7 @@
 package com.fzr.util.appCluster
 
+import com.fzr.util.HBaseUtil
+import com.fzr.util.appCluster.AppCluster.AppList
 import com.fzr.util.constants.AppConstants
 import kafka.serializer.StringDecoder
 import org.apache.commons.lang3.StringUtils
@@ -79,12 +81,11 @@ object AppClusterDstream {
 				val rowKey = MD5Hash.getMD5AsHex(Bytes.toBytes(uid)).substring(0,8) + "_" + uid
 				val prediction = row.getAs[Int]("prediction").toString
 				val cols = Array(prediction)
-				(new ImmutableBytesWritable, HBaseUtils.getPutAction(rowKey, "p", Array("pr"), cols))
-			}).saveAsHadoopDataset(HBaseUtils.getJobConf("user_app_cluster"))
+				(new ImmutableBytesWritable, HBaseUtil.getPutAction(rowKey, "p", Array("pr"), cols))
+			}).saveAsHadoopDataset(HBaseUtil.getJobConf("user_app_cluster"))
 		})
 		
 		ssc.start()
 		ssc.awaitTermination()
 	}
-	case class AppList(uid: Long, app_list: Array[String]) extends Serializable
 }
