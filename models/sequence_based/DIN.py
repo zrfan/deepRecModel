@@ -206,7 +206,28 @@ class DINModel(BaseEstimatorModel):
         pos = tf.nn.relu(_x)
         neg = alphas * (_x - abs(_x)) * 0.5
         return pos+neg
-
+class DINModel(BaseEstimatorModel):
+    def __init__(self):
+        pass
+#     def train(self):
+#         model_estimator = self.model_estimator(self.params)
+#         # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["input_layer", "ctr_score"], every_n_iter=500)])  ## input_layer
+#         train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_input_fn(f="train"), hooks=[tf.train.LoggingTensorHook(["dense_input", "expert_outputs", "ctr_score"], every_n_iter=500)])
+#         eval_spec = tf.estimator.EvalSpec(input_fn=lambda : self.train_input_fn(f="test"), steps=None, start_delay_secs=1000, throttle_secs=1200)
+#         tf.estimator.train_and_evaluate(model_estimator, train_spec, eval_spec)
+#
+# def main(_):
+#     params = {"embedding_size": 6, "feature_size": 0, "field_size": 0, "batch_size": 64, "learning_rate": 0.001,"epochs":200,
+#               "optimizer": "adam", "data_path": "../data/ml-1m/", "model_dir": "../data/model/mmoe/", "hidden_units":[8],
+#               "experts_units": 2, "experts_num":2, "label1_weight": 0.5, "label2_weight": 0.5}
+#     m = MMoEModel(configParam=ConfigParam(params))
+#     m.train()
+#
+#
+# if __name__ == '__main__':
+#     print(tf.__version__)
+#     tf.app.run()
+#
 
 
 

@@ -249,9 +249,14 @@ class DeepFMModel(BaseEstimatorModel):
     def train(self):
         model_estimator = self.model_estimator(self.params)
         # model.train(input_fn=self.train_input_fn, hooks=[tf.train.LoggingTensorHook(["inputlayer", "ctr_score"], every_n_iter=500)])
-        train_spec = tf.estimator.TrainSpec(input_fn=lambda : self.train_origin_input_fn(f="train"),
+        train_spec = tf.estimator.TrainSpec(input_fn=lambda: self.train_origin_input_fn(f="train"),
                                             hooks=[tf.train.LoggingTensorHook(["first_order", "second_order", "dense_input"], every_n_iter=500)])
-        eval_spec = tf.estimator.EvalSpec(input_fn=lambda : self.train_origin_input_fn(f="test"), steps=None, start_delay_secs=1000, throttle_secs=1200)
+
+
+
+
+
+        eval_spec = tf.estimator.EvalSpec(input_fn=lambda: self.train_origin_input_fn(f="test"), steps=None, start_delay_secs=1000, throttle_secs=1200)
         tf.estimator.train_and_evaluate(model_estimator, train_spec, eval_spec)
     def test_run_dataset(self):
         dataset = self.train_onehot_input_fn(f="train").make_initializable_iterator()
