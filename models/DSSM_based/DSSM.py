@@ -17,10 +17,10 @@ tf.reset_default_graph()
 ##
 # DSSM
 ##
-def compute_seq_length(sequences):
-    used = tf.sign(tf.reduce_max(tf.abs(sequences), reduction_indices=2))
-    seq_len = tf.reduce_sum(used, reducation_indices=1)
-    return tf.cast(seq_len, tf.int32)
+def get_cosine_similarity(user, ad):
+    user_norm = tf.sqrt(tf.reduce_sum(tf.multiply(user, user), axis=1))
+    ad_norm = tf.sqrt(tf.reduce_sum(tf.multiply(ad, ad), axis=1))
+
 
 class DSSMModel(BaseEstimatorModel):
     def __init__(self, configParam):
@@ -62,4 +62,7 @@ class DSSMModel(BaseEstimatorModel):
             for i in range(1, len_layers):
                 ad_dense = tf.layers.dense(ad_dense, units=params.hidden_units[i], activation=tf.nn.relu)
             ad_out = tf.layers.dense(ad_dense, units=1)
+
+        # cosine_similarity
+
 
