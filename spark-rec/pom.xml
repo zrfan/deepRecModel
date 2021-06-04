@@ -10,7 +10,7 @@
 
     <properties>
         <scala.version>2.11.12</scala.version>
-        <spark.version>2.3.1</spark.version>
+        <spark.version>2.4.5</spark.version>
         <hadoop.version>2.2.0</hadoop.version>
         <hbase.version>1.2.0</hbase.version>
         <tensorflow.version>1.13.1</tensorflow.version>

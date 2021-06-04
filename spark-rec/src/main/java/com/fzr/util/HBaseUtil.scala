@@ -18,14 +18,14 @@ object HBaseUtil {
 	
 	def init() = {
 		conf = HBaseConfiguration.create()
-		conf.set("hbase.zookeeper.quorum", "lee")
+		conf.set("hbase.zookeeper.quorum", "test")
 		conf.set("zookeeper.znode.parent", "/hbase")
 		connection = ConnectionFactory.createConnection(conf)
 	}
 	
 	object HBaseClient extends Serializable {
 		conf = HBaseConfiguration.create()
-		conf.set("hbase.zookeeper.quorum", "lee")
+		conf.set("hbase.zookeeper.quorum", "test")
 		conf.set("zookeeper.znode.parent", "/hbase")
 		connection = ConnectionFactory.createConnection(conf)
 		lazy val hook = new Thread {
@@ -39,7 +39,7 @@ object HBaseUtil {
 	def getJobConf(tableName: String) = {
 		conf = HBaseConfiguration.create()
 		val jobConf = new JobConf(conf)
-		jobConf.set("hbase.zookeeper.quorum", "lee")
+		jobConf.set("hbase.zookeeper.quorum", "test")
 		jobConf.set("zookeeper.znode.parent", "/hbase")
 		jobConf.set("hbase.zookeeper.property.clientPort", "2181")
 		jobConf.setOutputFormat(classOf[org.apache.hadoop.hbase.mapred.TableOutputFormat])
@@ -51,7 +51,7 @@ object HBaseUtil {
 	
 	def getNewConf(tableName: String) = {
 		conf = HBaseConfiguration.create()
-		conf.set("hbase.zookeeper.quorum", "lee")
+		conf.set("hbase.zookeeper.quorum", "test")
 		conf.set("zookeeper.znode.parent", "/hbase")
 		conf.set("hbase.zookeeper.property.clientPort", "2181")
 		conf.set(org.apache.hadoop.hbase.mapreduce.TableInputFormat.INPUT_TABLE, tableName)
@@ -64,7 +64,7 @@ object HBaseUtil {
 	def getNewJobConf(tableName: String) = {
 		
 		val conf = HBaseConfiguration.create()
-		conf.set("hbase.zookeeper.quorum", "lee")
+		conf.set("hbase.zookeeper.quorum", "test")
 		conf.set("zookeeper.znode.parent", "/hbase")
 		conf.set("hbase.zookeeper.property.clientPort", "2181")
 		conf.set("hbase.defaults.for.version.skip", "true")
