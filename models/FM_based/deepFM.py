@@ -11,8 +11,6 @@ from models.model_util import registerAllFeatureHashTable
 from models.ConfigParam import ConfigParam
 import random
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 使用第0块GPU
-tf.set_random_seed(2019)
-tf.reset_default_graph()
 
 
 ## https://github.com/ChenglongChen/tensorflow-DeepFM/blob/master/DeepFM.py
@@ -64,6 +62,7 @@ class DeepFMModel(BaseEstimatorModel):
         predicts = tf.layers.dense(concat_input, 1, activation=None,
                                    kernel_initializer=weights_initializer,
                                    kernel_regularizer=tf.contrib.layers.l2_regularizer(0.00001))
+        logits = tf.nn.sigmoid(predicts)
         #### loss
         if self.params.loss_type == "logloss":
             predicts = tf.nn.sigmoid(predicts)
@@ -86,7 +85,7 @@ class DeepFMModel(BaseEstimatorModel):
             optimizer = tf.train.MomentumOptimizer(learning_rate)
         train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
         # metric
-        eval_metric_ops = {"auc": tf.metrics.auc(labels["label"], predicts)}
+        eval_metric_ops = {"auc": tf.metrics.auc(labels["label"], logits)}
         predictions = {"prob": predicts}
 
         # return tf.estimator.EstimatorSpec(mode=tf.estimator.ModeKeys.TRAIN, predictions=predicts, loss=loss,
@@ -282,6 +281,8 @@ def main(_):
 
 if __name__ == '__main__':
     print(tf.__version__)
+    tf.set_random_seed(2019)
+    tf.reset_default_graph()
     tf.app.run()
 
 
